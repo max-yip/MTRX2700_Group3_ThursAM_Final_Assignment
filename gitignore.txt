@@ -1,0 +1,29 @@
+.DS_Store
+
+# STM32CubeIDE
+.metadata/
+.settings/
+
+# Exclude build artifacts but keep project metadata
+Debug/
+Release/
+*.o
+*.obj
+*.exe
+*.map
+*.list
+*.elf
+*.bin
+*.hex
+
+# Ignore CubeIDE auto-generated backups
+*.bak
+*.dep
+*.d
+*.launch
+
+# Ignore log files
+*.log
+
+# Ignore CubeMX-generated files that shouldn't be committed
+cubeMX.db
