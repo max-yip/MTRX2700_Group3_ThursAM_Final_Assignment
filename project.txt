@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>MTRX2700_Group6_ThursAM_CLab</name>
+	<name>MTRX2700_Group3_ThursAM_Final_Assignment</name>
 	<comment></comment>
 	<projects>
 	</projects>
