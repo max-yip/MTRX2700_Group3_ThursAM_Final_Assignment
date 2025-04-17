@@ -1,7 +1,7 @@
 # MTRX2700_Group3_ThursAM_Final_Assignment
 
 ## Group Members
-Paul Akle 530521187 <br>
+Paul Akle 530483944 <br>
 Max Yip 520434307 <br>
 Nohra Adam 530573315 <br>
 Siya Sharma 510451145 <br>
