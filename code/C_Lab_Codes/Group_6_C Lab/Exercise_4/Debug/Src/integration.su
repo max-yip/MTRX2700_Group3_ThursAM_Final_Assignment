@@ -1,0 +1,2 @@
+../Src/integration.c:4:6:commandParser	160	static
+../Src/integration.c:63:9:isNumeric	24	static
