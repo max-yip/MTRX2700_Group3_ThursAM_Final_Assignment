@@ -14,9 +14,9 @@
 | Paul Akle     | Present  |  |
 
 ## Agenda  
-- [ ] **Item 1** - Demonstrate current ideas and challenges
-- [ ] **Item 2** - Brainstorm new ideas
-- [ ] **Item 3** - Create a final task description 
+- [x] **Item 1** - Demonstrate current ideas and challenges
+- [x] **Item 2** - Brainstorm new ideas
+- [x] **Item 3** - Create a final task description 
 - [ ] **Item 4** - Design of system diagrams 
 
 ## Action Items  
@@ -24,8 +24,8 @@
 |------|------------|---------|--------|
 | IR beam Breaker Interface | Paul Akle | Week 9 | In Progress |
 | Create project code base | Max Yip | Week 9 | In Progress |
-| Servo Interface | Aditya Kathane | Week 9 | In Progress |
-| Sensor Interface | Siya Sharma | Week 9 | In Progress  |
+| Servo Interface | Aditya Kathane | Week 9 | Unknown |
+| Stages design | Siya Sharma | Week 9 | In Progress  |
 
 ## Next Steps  
 - **Next Meeting:** Remote call before next Thursday (Date TBC)  
