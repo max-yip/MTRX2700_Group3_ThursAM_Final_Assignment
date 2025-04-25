@@ -1,32 +1,37 @@
-# MTRX Group #3
-##  Date - 25/04/2025
-##  Location - Zoom Meeting
+## Meeting Details 
+# MTRX Group #3 
+**Date:** 25/04/2025  
+**Time:** 10:00 AM 
+**Location:** Zoom Meeting  
+**Meeting Type:** Task conceptialisation and brainstorm 
 
-### Present:
-- Max Yip  
-- Siya Sharma  
-- Paul Akle  
+## Attendance  
+| Name          | Status   | Notes |
+|---------------|----------|-------|
+| Max Yip | Present  |  |
+| Aditya Kathane    | Absent  |  |
+| Siya Sharma    | Present  |  |
+| Paul Akle     | Present  |  |
 
-### Meeting Purpose:
-Task conceptualisation and brainstorming
+## Agenda  
+- [ ] **Item 1** - Demonstrate current ideas and challenges
+- [ ] **Item 2** - Brainstorm new ideas
+- [ ] **Item 3** - Create a final task description 
+- [ ] **Item 4** - Design of system diagrams 
 
-### Previous Actions: n/a
+## Action Items  
+| Task | Assigned To | Due Date | Status |
+|------|------------|---------|--------|
+| IR beam Breaker Interface | Paul Akle | Week 9 | In Progress |
+| Create project code base | Max Yip | Week 9 | In Progress |
+| Servo Interface | Aditya Kathane | Week 9 | In Progress |
+| Sensor Interface | Siya Sharma | Week 9 | In Progress  |
 
-### Current Items:
-- Demonstrate current ideas and challenges  
-- Brainstorm new ideas  
-- Create a final task description  
-- Design of system block diagram and flowchart
+## Next Steps  
+- **Next Meeting:** Remote call before next Thursday (Date TBC)  
+- **Objectives for Next Meeting:**  
+  - [ ] Objective 1: Complete all tasks before next Thursday 
+  - [ ] Objective 2: Have plan for integration ready to begin and implement
 
-### New Items:
-- Defined responsibilities for each group member  
-- Set Week 9 as the deadline for initial component interfaces and code base
-
-| Task                      | Assigned To     | Due Date | Status       |
-|---------------------------|-----------------|----------|--------------|
-| IR beam Breaker Interface | Paul Akle       | Week 9   | In Progress  |
-| Create project code base  | Max Yip         | Week 9   | In Progress  |
-| Challenge ideas           | Siya Sharma     | Week 9   | In Progress  |
-
-### Next Meeting Date:
-Remote call before next Thursday (Date TBC)
+---
+*End of Meeting Minutes* 
