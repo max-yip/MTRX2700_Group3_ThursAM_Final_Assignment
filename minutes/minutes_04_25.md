@@ -16,7 +16,7 @@ Task conceptualisation and brainstorming
 - Demonstrate current ideas and challenges  
 - Brainstorm new ideas  
 - Create a final task description  
-- Design of system diagrams
+- Design of system block diagram and flowchart
 
 ### New Items:
 - Defined responsibilities for each group member  
