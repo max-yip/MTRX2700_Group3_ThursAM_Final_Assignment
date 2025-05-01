@@ -1,9 +1,9 @@
 ## Meeting Details 
 # MTRX Group #3 
-**Date:** 25/04/2025  
-**Time:** 10:00 AM 
-**Location:** Zoom Meeting  
-**Meeting Type:** Task conceptialisation and brainstorm 
+**Date:** 01/05/2025  
+**Time:** 10:00 AM
+**Location:** Tutorial session  
+**Meeting Type:** Design and interface finalisation   
 
 ## Attendance  
 | Name          | Status   | Notes |
@@ -12,24 +12,27 @@
 | Aditya Kathane    | Absent  |  |
 | Siya Sharma    | Absent  |  |
 | Paul Akle     | Present  |  |
-|      | Present  |  |
+| Shuvayu Benerjee     | Present  |  |
 
 ## Agenda  
-- [x] **Item 1** - Demonstrate current ideas and challenges
-- [x] **Item 2** - Brainstorm new ideas
-- [x] **Item 3** - Create a final task description 
-- [ ] **Item 4** - Design of system diagrams 
+- [x] **Item 1** - Create a final task description 
+- [x] **Item 2** - Finalise current sensor interfaces
+- [x] **Item 3** - Create interface for servo and LDR
+- [ ] **Item 4** - Begin designing physical interfaces (Planets and Grid)
 
 ## Action Items  
 | Task | Assigned To | Due Date | Status |
 |------|------------|---------|--------|
-| IR beam Breaker Interface | Paul Akle | Week 9 | In Progress |
-| Create project code base | Max Yip | Week 9 | In Progress |
-| Servo Interface | Aditya Kathane | Week 9 | Unknown |
-| Stages design | Siya Sharma | Week 9 | In Progress  |
+| Filter code + puzzle 2 design | Paul Akle | Week 10 | In Progress |
+| Filter code + lidar and refractor code | Max Yip | Week 10 | In Progress |
+| Servo Interface | Aditya Kathane | Week 10 | Unknown |
+| LDR interface | Siya Sharma | Week 10 | In Progress  |
+| Purchase extra flexible potentiometer | all | Week 10 | In Progress  |
+| Design planet for puzzle 1 | Shuvayu Benerjee | Week 10 | In Progress  |
+
 
 ## Next Steps  
-- **Next Meeting:** Remote call before next Thursday (Date TBC)  
+- **Next Meeting:** In-person meeting next Wednesay (7/5/25)  
 - **Objectives for Next Meeting:**  
   - [ ] Objective 1: Complete all tasks before next Thursday 
   - [ ] Objective 2: Have plan for integration ready to begin and implement
