@@ -9,8 +9,8 @@
 | Name          | Status   | Notes |
 |---------------|----------|-------|
 | Max Yip | Present  |  |
-| Aditya Kathane    | Absent  |  |
-| Siya Sharma    | Absent  |  |
+| Aditya Kathane    | Absent  | Sick  |
+| Siya Sharma    | Absent  | Personal reasons |
 | Paul Akle     | Present  |  |
 | Shuvayu Benerjee     | Present  |  |
 
@@ -26,7 +26,7 @@
 | Filter code + puzzle 2 design | Paul Akle | Week 10 | In Progress |
 | Filter code + lidar and refractor code | Max Yip | Week 10 | In Progress |
 | Servo Interface | Aditya Kathane | Week 10 | Unknown |
-| LDR interface | Siya Sharma | Week 10 | In Progress  |
+| LDR interface | Siya Sharma | Week 10 | Unknown |
 | Purchase extra flexible potentiometer | all | Week 10 | In Progress  |
 | Design planet for puzzle 1 | Shuvayu Benerjee | Week 10 | In Progress  |
 
