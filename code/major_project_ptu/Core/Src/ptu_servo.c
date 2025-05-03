@@ -9,6 +9,20 @@
 #include "ptu_servo.h"
 
 
+// ==== Helper functions ===
+uint8_t isNumeric(const char *str) {
+    if (str == NULL || *str == '\0') return 0; // empty or NULL
+
+    for (int i = 0; str[i] != '\0'; i++) {
+        if (!isdigit((unsigned char)str[i])) {
+            return 0;
+        }
+    }
+    return 1;
+}
+
+
+// ==== initialise servo pwm ===
 HAL_StatusTypeDef initialise_ptu_pwm(TIM_HandleTypeDef *htim1, TIM_HandleTypeDef *htim2) {
     HAL_StatusTypeDef return_value;
 
@@ -43,6 +57,14 @@ HAL_StatusTypeDef initialise_ptu_pwm(TIM_HandleTypeDef *htim1, TIM_HandleTypeDef
 }
 
 
+
+void setServoPWM(uint16_t vertical_PWM, uint16_t horizontal_PWM){
+	TIM2->CCR1 = vertical_PWM;
+	TIM2->CCR2 = horizontal_PWM;
+}
+
+
+
 void servo_command_parser(SerialPort *serial_port) {
     char command_line[BUFFER_SIZE];
     strcpy(command_line, SerialGetReceivedBuffer(serial_port));
@@ -65,14 +87,3 @@ void servo_command_parser(SerialPort *serial_port) {
 }
 
 
-
-uint8_t isNumeric(const char *str) {
-    if (str == NULL || *str == '\0') return 0; // empty or NULL
-
-    for (int i = 0; str[i] != '\0'; i++) {
-        if (!isdigit((unsigned char)str[i])) {
-            return 0;
-        }
-    }
-    return 1;
-}
