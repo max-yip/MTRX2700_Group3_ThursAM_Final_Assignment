@@ -87,4 +87,4 @@ Shuvayu Banerjee <br>
 </details>
 
 ## Acknowledgements
-Code from MTRX2700-2025 was used and refactored in this assignment.
+Code from MTRX2700-2025 was used and refactored, and code from ThursAM_Group6_CLab was used in this assignment.
