@@ -101,8 +101,9 @@ int main(void)
 
 	enableGPIOClocks(); //clock function above -- need to modularise
 	enableGPIOELEDS(); // initialise leds
-	SerialInitialise(BAUD_115200, &USART1_PORT, 0x00);
-//	serialReceiveInterrupt(&USART1_PORT);
+//	SerialInitialise(BAUD_115200, &USART1_PORT, 0x00);
+	SerialInitialise(BAUD_115200, &USART1_PORT, &servo_command_parser);
+	serialReceiveInterrupt(&USART1_PORT);
 
 
 	LedRegister *led_register = ((uint8_t*)&(GPIOE->ODR)) + 1; // get gpioe register
@@ -153,6 +154,10 @@ int main(void)
   	return_value = initialise_ptu_pwm(&htim1, &htim2);
 
 
+  	// need to do these in interrupts
+  	setServoPWM(vertical_PWM, horizontal_PWM);
+
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -160,7 +165,22 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  	setServoPWM(vertical_PWM, horizontal_PWM);
+	  // psuedocode
+	  /*
+	  if i2c_done == 1:
+	  	  // reset i2c read
+		  i2c_done = 0
+
+		  assign gyro/accel values to the read_buffer
+
+		  LIDAR PWM done in interrupts, use the variable last_period
+
+		  some filtering
+		  - for now, use servopwm as the error, once filter for gyro and accel done (able to get angles, switch)
+		  - median filter for lidar pwm
+
+	  	  serialise the data (gyro, accel, lidarpwm, servopwm x2, button)
+	   */
 
 		// get gyro data
 		int16_t yaw_rate = 0, pitch_rate = 0, roll_rate = 0;
@@ -170,50 +190,19 @@ int main(void)
 		int16_t acc_x = 0, acc_y = 0, acc_z = 0;
 		read_accel_data(&hi2c1, &acc_x, &acc_y, &acc_z);
 
-//		uint8_t lidar_value = 0x03;
-//		return_value = HAL_I2C_Mem_Write(&hi2c1, LIDAR_WR, 0x00, 1, &lidar_value, 1, 100);
-//
-//		lidar_value = 0xff;
-//
-//		uint8_t lidar_MSBa = 0x00;
-//		uint8_t lidar_LSBa = 0x00;
-//
-//		volatile uint16_t lidar_distance = 0xff;
-//
-//		uint16_t timeout;
-//
-//		while ((lidar_value & 0x01) != 0x00) {
-//			return_value = HAL_I2C_Mem_Read(&hi2c1, LIDAR_RD, 0x01, 1, &lidar_value, 1, 100);
-//
-//			return_value = HAL_I2C_Mem_Read(&hi2c1, LIDAR_RD, 0x0f, 1, &lidar_MSBa, 1, 100);
-//			return_value = HAL_I2C_Mem_Read(&hi2c1, LIDAR_RD, 0x10, 1, &lidar_LSBa, 1, 100);
-//
-//			lidar_distance = ((lidar_MSBa << 8) | lidar_LSBa);
-//			timeout += 1;
-//			if (timeout > 0xff)
-//				break;
-//		}
-//
-//		uint8_t lidar_ranges = lidar_distance / (100/4); // 100cm broken into 4 groups
-//		if (lidar_ranges > 3)
-//			lidar_ranges = 3;
 
-		// This is turned off as the LED state is set from the serial input
-
-//		uint8_t led_values = pow(2, lidar_ranges);
-
-//		led_register->led_groups.led_set_of_4 = led_values;
-
+		// last period from ptu_lidar, probably rename it
 		if (last_period > 5000) // limit set as 5m
 			last_period = 5000;
-//		if (lidar_distance > 4000)
-//			lidar_distance = 5500;
+
 
 		// Serial string turned off as the data is being sent now through the serialiser
 //		sprintf(string_to_send, "last period: %hu, lidar distance: %hu, roll: %hd, pitch: %hd, yaw: %hd\r\n", last_period, 0, roll_rate, pitch_rate, yaw_rate);
 //		SerialOutputString(string_to_send, &USART1_PORT);
 
 
+
+		// need to do these in polling
 		// Construct a button data packet and send over serial
 		Data button_data;
 		uint8_t button_data_packet_buffer[6 + sizeof(ButtonAndStatus)] = {0}; // Header + SensorData
@@ -236,6 +225,7 @@ int main(void)
 		sensor_data.sensor_data.gyro_z = yaw_rate;
 		sensor_data.sensor_data.lidar_pwm = last_period;
 		sensor_data.sensor_data.lidar_i2c = 0; // not working
+
 
 		uint16_t sensor_data_buffer_length = pack_buffer(sensor_data_packet_buffer, SENSOR_DATA, &sensor_data);
 		SerialOutputBuffer(sensor_data_packet_buffer, sensor_data_buffer_length, &USART1_PORT); // Send the buffer over serial

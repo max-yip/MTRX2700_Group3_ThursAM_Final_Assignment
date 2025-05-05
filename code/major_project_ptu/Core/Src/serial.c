@@ -352,19 +352,19 @@ void SerialInitialise(uint32_t baudRate, SerialPort *serial_port, callback_t cal
 	// Baud rate calculation from datasheet
 	switch(baudRate){
 	case BAUD_9600:
-		*baud_rate_config = 0x341*0x06;  // 9600 at 8MHz
+		*baud_rate_config = 0x341*0x06;  // 9600 at 48MHz
 		break;
 	case BAUD_19200:
-		*baud_rate_config = 0x1A1*0x06;  // 19200 at 8MHz
+		*baud_rate_config = 0x1A1*0x06;  // 19200 at 48MHz
 		break;
 	case BAUD_38400:
-		*baud_rate_config = 0xD0*0x06;  // 38400 at 8MHz
+		*baud_rate_config = 0xD0*0x06;  // 38400 at 48MHz
 		break;
 	case BAUD_57600:
-		*baud_rate_config = 0x8B*0x06;  // 57600 at 8MHz
+		*baud_rate_config = 0x8B*0x06;  // 57600 at 48MHz
 		break;
 	case BAUD_115200:
-		*baud_rate_config = 0x46*0x06;  // 115200 at 8MHz
+		*baud_rate_config = 0x46*0x06;  // 115200 at 48MHz
 		break;
 	}
 
@@ -378,12 +378,12 @@ void SerialInitialise(uint32_t baudRate, SerialPort *serial_port, callback_t cal
 	serial_port->receiving = 0;
 }
 
-// ---------- UASRT SPECIFCI FUNCTIONALITY ----------
+// ---------- UASRT SPECIFIC FUNCTIONALITY ----------
 
 // RECEIVE STRING
 
-// SerialInputString - receive input string with termination character '\r' or '\n' from the serial port and save to buffer
-// Input: pointer to buffer, serial port, pointer to callback function
+// receiveString - receive input string with termination character '\r' or '\n' from the serial port and save to buffer
+// Input: serial port
 void receiveString(SerialPort *serial_port) {
     uint16_t i = 0;  // Buffer index
 
@@ -418,7 +418,7 @@ void receiveString(SerialPort *serial_port) {
 
 // TRANSMIT STRING
 
-// SerialOutputString - output a NULL TERMINATED string to the serial port
+// transmitString - output a NULL TERMINATED string to the serial port
 // Input: pointer to a NULL-TERMINATED string (if not null terminated, there will be problems)
 void transmitString(uint8_t *buffer, SerialPort *serial_port) {
 	// while the buffer is not empty
@@ -435,8 +435,8 @@ void transmitString(uint8_t *buffer, SerialPort *serial_port) {
 // ---------- INTERRUPT INITIALISATION ----------
 
 
-// SerialEnableInterrupt - initialising interrupt for the given UART line and initialise the callback function
-// inputs: serial port pointer, callback function pointer
+// SerialReceiveInterrupt - initialising receive interrupt for the given UART line
+// inputs: serial port pointer
 void serialReceiveInterrupt(SerialPort *serial_port){
 	__disable_irq();
 
@@ -453,6 +453,9 @@ void serialReceiveInterrupt(SerialPort *serial_port){
 	__enable_irq();
 }
 
+
+// SerialTransmitInterrupt - initialising transmit interrupt for the given UART line
+// inputs: serial port pointer
 void serialTransmitInterrupt(SerialPort *serial_port) {
 	__disable_irq();
 
@@ -468,13 +471,14 @@ void serialTransmitInterrupt(SerialPort *serial_port) {
 	__enable_irq();
 }
 
+
 // ---------- INTERRUPT HANDLER ----------
 
 
-// USART1_EXTI25_IRQHandler - interrupt handler function that calls the customized SerialReceiveIRQHandler function for the USART1 port
+// USART1_IRQHandler - interrupt handler function that calls the customized SerialReceiveIRQHandler function for the USART1 port
 // DO NOT CHANGE THE FUNCTION NAME
 // inputs: none
-void USART1_EXTI25_IRQHandler(void)
+void USART1_IRQHandler(void)
 {
     SerialPort *serial_port = &USART1_PORT;
 
@@ -498,7 +502,8 @@ void USART1_EXTI25_IRQHandler(void)
     }
 }
 
-// SerialReceiveIRQHandler - store the incoming characters to the rx buffer until termination character or buffer limit reached
+
+// SerialReceiveIRQHandler - store the incoming characters to the rx buffer until either termination character or buffer limit reached
 // Input: serial port pointer
 void SerialReceiveIRQHandler(SerialPort *serial_port) {
 	uint8_t ch = serial_port->UART->RDR;
@@ -526,6 +531,7 @@ void SerialReceiveIRQHandler(SerialPort *serial_port) {
 		serial_port->buffer[serial_port->receiving][index] = ch;
 	}
 }
+
 
 
 void serialTransmitIRQHandler(SerialPort *serial_port) {
