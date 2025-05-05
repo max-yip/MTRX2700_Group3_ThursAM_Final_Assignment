@@ -184,7 +184,7 @@ class MainWindow(QMainWindow):
 
         self.setCentralWidget(self.central_widget)
 
-        self.start_serial_reading('/dev/tty.usbmodem11103')
+        self.start_serial_reading('/dev/tty.usbmodem1103')
 
     def update_values(self):
         self.slider1.setValue(1000)

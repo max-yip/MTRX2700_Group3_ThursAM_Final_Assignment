@@ -6,7 +6,8 @@ import time
 # PyQt6 import
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QTextEdit, QSlider, QProgressBar, QLineEdit, QFrame, QSpacerItem, QSizePolicy
+    QTextEdit, QSlider, QProgressBar, QLineEdit, QFrame, QSpacerItem, QSizePolicy,
+    QLCDNumber
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QMovie, QPixmap, QPainter  # For GIFs
@@ -29,13 +30,10 @@ class SpaceControlPanel(QWidget):
         self.setGeometry(100, 100, 1100, 700)
 
         #relative path of the image
-        self.bgimage_path_stage1 = os.path.join(basedir, 'assets', 'space_bg2.jpg')
-        self.bgimage_path_stage2 = os.path.join(basedir, 'assets', 'space_bg_swamp.png')
-
-
-        self.bg = QPixmap(self.bgimage_path_stage1)
+        self.bgimage_path = os.path.join(basedir, 'assets', 'space_bg2.jpg')
+        self.bg = QPixmap(self.bgimage_path)
         self.initUI()
-        self.start_serial_reading('/dev/tty.usbmodem11103')
+        self.start_serial_reading('/dev/tty.usbmodem1103')
 
     def initUI(self):
         main_layout = QHBoxLayout(self)
@@ -68,6 +66,14 @@ class SpaceControlPanel(QWidget):
         """)
         center_layout = QVBoxLayout(center_frame)
         center_layout.addSpacerItem(QSpacerItem(20, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
+        
+        # Number label
+        self.lidar_distance = QLCDNumber()
+        self.lidar_distance.setDigitCount(5)  # Width
+        self.lidar_distance.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
+        center_layout.addWidget(self.lidar_distance)
+        
+        # === button ===
         btn1 = QPushButton("Calculate")
         btn1.clicked.connect(lambda _, x=0, y=0: self.cell_clicked(x, y))
         btn1.setMaximumWidth(100)
@@ -198,8 +204,6 @@ class SpaceControlPanel(QWidget):
 
     def cell_clicked(self, x, y):
         print(f"Button Clicked: Cell ({x}, {y})")
-        self.bg = QPixmap(self.bgimage_path_stage2)
-        self.update()
 
     def process_chat_input(self):
         user_input = self.chat_input.text().strip()
@@ -228,7 +232,7 @@ class SpaceControlPanel(QWidget):
         self.dial1.setValue(data[3])
         self.dial2.setValue(data[4])
         self.dial3.setValue(data[5])
-        # self.slider1.setValue(data[6])
+        self.lidar_distance.display(data[6])
         # self.slider2.setValue(data[7])
 
     def send_servo_command(self):
