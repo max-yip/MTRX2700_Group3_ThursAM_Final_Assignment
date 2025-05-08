@@ -9,7 +9,7 @@
 | Name          | Status   | Notes |
 |---------------|----------|-------|
 | Max Yip | Present  |  |
-| Aditya Kathane    | Absent  | Pesonal Reasons  |
+| Aditya Kathane    | Absent  | Preparing for other exam  |
 | Siya Sharma    | Present  |  |
 | Paul Akle     | Present  |  |
 | Shuvayu Benerjee     | Present  |  |
