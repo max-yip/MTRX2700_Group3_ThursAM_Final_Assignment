@@ -67,7 +67,7 @@ void setServoPWM(uint16_t vertical_PWM, uint16_t horizontal_PWM){
 
 void servo_command_parser(SerialPort *serial_port) {
     char command_line[BUFFER_SIZE];
-    strcpy(command_line, SerialGetReceivedBuffer(serial_port));
+    strcpy(command_line, serialGetReceivedBuffer(serial_port));
 
 
     char *pan = strtok(command_line, ",");

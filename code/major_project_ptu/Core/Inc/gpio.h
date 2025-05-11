@@ -30,6 +30,26 @@ typedef union {
 } LedRegister;
 
 
+typedef struct {
+	uint8_t var1;
+	uint32_t var2;
+	uint8_t var3;
+	uint32_t var4;
+	uint8_t var5;
+	uint8_t var6;
+} struct_1;
+
+
+typedef struct {
+	uint32_t var2;
+	uint32_t var4;
+	uint8_t var1;
+	uint8_t var3;
+	uint8_t var5;
+	uint8_t var6;
+} struct_2;
+
+
 // ---------- CLOCK ENABLE ----------
 
 

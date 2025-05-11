@@ -13,7 +13,7 @@
  * - Major Initialise
  */
 
-#define BUTTONPRIORITY 1 // CAN BE CHANGED
+#define BUTTONPRIORITY 2 // CAN BE CHANGED
 
 void (*onButtonPress)() = 0x00;
 
@@ -36,9 +36,8 @@ void enableGPIOAButton() {
 }
 
 void enableGPIOELEDS() {
-	uint16_t *MODER = ((uint16_t *)&(GPIOE->MODER)) + 1;
-	*MODER = 0x5555;
-	return;
+	uint16_t *led_output_registers = ((uint16_t *)&(GPIOE->MODER)) + 1;
+	*led_output_registers = 0x5555;
 }
 
 

@@ -5,13 +5,10 @@
  *
  * - Definitions
  * - Initialise USARTs
- * - Initialise USART functions
- * 		- Specific register set ups
  * - USART Specific Functions
  * - Initialise Interrupts
- * - Initialise Interrupt Handler
  * - MISC functionality
- * - Major Initialise
+ * - PTU serialisation
  */
 
 #include <stdint.h>
@@ -28,16 +25,16 @@
 #define TERMINATION_LF '\n'
 
 
-//struct _SerialPort;
-//typedef struct _SerialPort SerialPort;
-//extern SerialPort USART1_PORT;
-
+// Forward declaration of the SerialPort struct
 typedef struct _SerialPort SerialPort;
 
+// Callback function type definition
 typedef void (*callback_t)(SerialPort *serial_port);
 
+// External SerialPort instance
 extern SerialPort USART1_PORT;
 
+// Supported baud rate enumeration
 enum {
   BAUD_9600,
   BAUD_19200,
@@ -48,10 +45,9 @@ enum {
 
 
 
-
 // ---------- INITIALISATION ----------
  
-void SerialInitialise(uint32_t baudRate, SerialPort *serial_port, callback_t callback_function);
+void serialInitialise(uint32_t baudRate, SerialPort *serial_port, callback_t callback_function);
 
 
 // ---------- USART SPECIFIC FUNCTIONS ----------
@@ -67,13 +63,9 @@ void serialReceiveInterrupt(SerialPort *serial_port);
 
 void serialTransmitInterrupt(SerialPort *serial_port);
 
-// ---------- INTERUPT HANDLER ----------
+void USART1_IRQHandler(void);
 
-void USART1_EXTI25_IRQHandler(void);
-
-// Interrupt Helpers
-
-void SerialReceiveIRQHandler(SerialPort *serial_port);
+void serialReceiveIRQHandler(SerialPort *serial_port);
 
 void serialTransmitIRQHandler(SerialPort *serial_port);
 
@@ -81,21 +73,20 @@ void serialTransmitIRQHandler(SerialPort *serial_port);
 
 void transmitStringInfo(SerialPort *serial_port);
 
-void my_rx_callback(SerialPort *serial_port);
+void myRxCallback(SerialPort *serial_port);
 
-const char *SerialGetReceivedBuffer(SerialPort *serial_port);
+const char *serialGetReceivedBuffer(SerialPort *serial_port);
 
 
+// --------- PTU SERIALISATION FUNCTIONS ----------
 
-void SerialOutputChar(uint8_t data, SerialPort *serial_port);
+void serialOutputBuffer(uint8_t *buffer, uint16_t buffer_length, SerialPort *serial_port);
 
-void SerialOutputBuffer(uint8_t *buffer, uint16_t buffer_length, SerialPort *serial_port);
 
-uint8_t SerialReceiveChar(SerialPort *serial_port, uint8_t *received_char);
 // ---------- Serial Packet -----------
 
-uint16_t SerialInputPacketHeader(char *buffer, SerialPort *serial_port);
+uint16_t serialInputPacketHeader(char *buffer, SerialPort *serial_port);
 
-uint16_t SerialInputDataPacket(char *buffer, int length, SerialPort *serial_port);
+uint16_t serialInputDataPacket(char *buffer, int length, SerialPort *serial_port);
 
 #endif

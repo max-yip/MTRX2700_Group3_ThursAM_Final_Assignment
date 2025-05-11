@@ -28,7 +28,7 @@
 #include "serial.h"
 #include "serialise.h"
 #include "gpio.h"
-
+#include "filters.h"
 #include <math.h>
 /* USER CODE END Includes */
 
@@ -101,12 +101,11 @@ int main(void)
 
 	enableGPIOClocks(); //clock function above -- need to modularise
 	enableGPIOELEDS(); // initialise leds
-//	SerialInitialise(BAUD_115200, &USART1_PORT, 0x00);
-	SerialInitialise(BAUD_115200, &USART1_PORT, &servo_command_parser);
+
+	serialInitialise(BAUD_115200, &USART1_PORT, &servo_command_parser);
 	serialReceiveInterrupt(&USART1_PORT);
 
-
-	LedRegister *led_register = ((uint8_t*)&(GPIOE->ODR)) + 1; // get gpioe register
+	LedRegister *led_register = ((uint8_t*)&(GPIOE->ODR)) + 1;
 
 	HAL_StatusTypeDef return_value = HAL_OK;  // previous operation succeeded.
 
@@ -153,9 +152,12 @@ int main(void)
   	// initialise servo pwm
   	return_value = initialise_ptu_pwm(&htim1, &htim2);
 
-
   	// need to do these in interrupts
   	setServoPWM(vertical_PWM, horizontal_PWM);
+
+  	//initialise median filter
+  	MedianFilter dataFilters[NUM_DATA];
+  	initFilters(dataFilters, 0);
 
 
   /* USER CODE END 2 */
@@ -165,51 +167,53 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-	  // psuedocode
-	  /*
-	  if i2c_done == 1:
-	  	  // reset i2c read
-		  i2c_done = 0
 
-		  assign gyro/accel values to the read_buffer
-
-		  LIDAR PWM done in interrupts, use the variable last_period
-
-		  some filtering
-		  - for now, use servopwm as the error, once filter for gyro and accel done (able to get angles, switch)
-		  - median filter for lidar pwm
-
-	  	  serialise the data (gyro, accel, lidarpwm, servopwm x2, button)
-	   */
-
+	  	// do these in interrupts
 		// get gyro data
-		int16_t yaw_rate = 0, pitch_rate = 0, roll_rate = 0;
-		read_gyro_data(&hi2c1, &yaw_rate, &pitch_rate, &roll_rate);
+	  	int16_t yaw_rate = 0, pitch_rate = 0, roll_rate = 0;
+	  	read_gyro_data(&hi2c1, &yaw_rate, &pitch_rate, &roll_rate);
 
 		// get accel data
 		int16_t acc_x = 0, acc_y = 0, acc_z = 0;
 		read_accel_data(&hi2c1, &acc_x, &acc_y, &acc_z);
 
-
-		// last period from ptu_lidar, probably rename it
-		if (last_period > 5000) // limit set as 5m
-			last_period = 5000;
+		// do above in interrupts
 
 
-		// Serial string turned off as the data is being sent now through the serialiser
-//		sprintf(string_to_send, "last period: %hu, lidar distance: %hu, roll: %hd, pitch: %hd, yaw: %hd\r\n", last_period, 0, roll_rate, pitch_rate, yaw_rate);
-//		SerialOutputString(string_to_send, &USART1_PORT);
+		// last period from ptu_lidar
+		if (last_period > 4000) // limit set as 4m
+			last_period = 4000;
+
+		// ====== filtering =====
+
+		uint16_t filtered_lidar = getMedian(&dataFilters[LIDAR], last_period);
+
+		int16_t filtered_roll = getMedian(&dataFilters[GYRO_X], roll_rate);
+		int16_t filtered_pitch = getMedian(&dataFilters[GYRO_Y], pitch_rate);
+		int16_t filtered_yaw = getMedian(&dataFilters[GYRO_Z], yaw_rate);
+
+		int16_t filtered_acc_x = getMedian(&dataFilters[ACCEL_X], acc_x);
+		int16_t filtered_acc_y = getMedian(&dataFilters[ACCEL_Y], acc_y);
+		int16_t filtered_acc_z = getMedian(&dataFilters[ACCEL_Z], acc_z);
 
 
 
-		// need to do these in polling
+		// ===== SERIAL DEBUG =====
+		// send data without serialisation, lidar distance set as 0 as i2c doesnt work
+		//uint8_t string_to_send[128];
+		//sprintf(string_to_send, "last period: %hu, lidar distance: %hu, roll: %hd, pitch: %hd, yaw: %hd\r\n", filtered_lidar, 0, filtered_roll, filtered_pitch, filtered_yaw);
+		//transmitString(string_to_send, &USART1_PORT);
+
+
+
 		// Construct a button data packet and send over serial
 		Data button_data;
 		uint8_t button_data_packet_buffer[6 + sizeof(ButtonAndStatus)] = {0}; // Header + SensorData
 		button_data.button_and_status.button_state = GPIOA->IDR & 0x01;
 
 		uint16_t button_data_buffer_length = pack_buffer(button_data_packet_buffer, BUTTON_AND_STATUS, &button_data);
-		SerialOutputBuffer(button_data_packet_buffer, button_data_buffer_length, &USART1_PORT); // Send the buffer over serial
+		serialOutputBuffer(button_data_packet_buffer, button_data_buffer_length, &USART1_PORT); // Send the buffer over serial
+
 
 
 		// Construct a sensor data packet and send over serial
@@ -217,23 +221,37 @@ int main(void)
 		uint8_t sensor_data_packet_buffer[6 + sizeof(SensorData)] = {0}; // Header + SensorData
 
 		// Fill sensor_data.sensor_data with your actual sensor readings
-		sensor_data.sensor_data.acc_x = acc_x;
-		sensor_data.sensor_data.acc_y = acc_y;
-		sensor_data.sensor_data.acc_z = acc_z;
-		sensor_data.sensor_data.gyro_x = roll_rate;
-		sensor_data.sensor_data.gyro_y = pitch_rate;
-		sensor_data.sensor_data.gyro_z = yaw_rate;
-		sensor_data.sensor_data.lidar_pwm = last_period;
-		sensor_data.sensor_data.lidar_i2c = 0; // not working
+		sensor_data.sensor_data.gyro_x = filtered_roll;
+		sensor_data.sensor_data.gyro_y = filtered_pitch;
+		sensor_data.sensor_data.gyro_z = filtered_yaw;
+		sensor_data.sensor_data.acc_x = filtered_acc_x;
+		sensor_data.sensor_data.acc_y = filtered_acc_y;
+		sensor_data.sensor_data.acc_z = filtered_acc_z;
+		sensor_data.sensor_data.lidar_pwm = filtered_lidar;
+//		sensor_data.sensor_data.lidar_i2c = 0; // not working
+
 
 
 		uint16_t sensor_data_buffer_length = pack_buffer(sensor_data_packet_buffer, SENSOR_DATA, &sensor_data);
-		SerialOutputBuffer(sensor_data_packet_buffer, sensor_data_buffer_length, &USART1_PORT); // Send the buffer over serial
+		serialOutputBuffer(sensor_data_packet_buffer, sensor_data_buffer_length, &USART1_PORT); // Send the buffer over serial
 
 
+
+
+
+
+
+		// lidar needs to do more smoothing now that its sending data way faster
+		// servo interrupts cant do shit cuz its sending too fast
+
+
+
+
+
+//		GPIO STUFF
 		// Read a data packet from serial that has the LED state
 		uint8_t data_packet_input_buffer[32] = {0};
-		uint16_t data_packet_size = SerialInputPacketHeader(data_packet_input_buffer, &USART1_PORT);
+		uint16_t data_packet_size = serialInputPacketHeader(data_packet_input_buffer, &USART1_PORT);
 
 		// copy the data to a header structure
 		Header incoming_header = {0};
@@ -241,7 +259,7 @@ int main(void)
 
 		if (incoming_header.message_type == LED_STATE) {
 			LEDState desired_led_state = {0};
-			uint8_t success = SerialInputDataPacket(&desired_led_state, sizeof(desired_led_state), &USART1_PORT);
+			uint8_t success = serialInputDataPacket(&desired_led_state, sizeof(desired_led_state), &USART1_PORT);
 
 			if (success > 0) {
 				//uint8_t tmp = desired_led_state.led_byte;

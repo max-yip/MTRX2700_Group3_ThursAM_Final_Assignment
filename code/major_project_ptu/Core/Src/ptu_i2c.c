@@ -3,6 +3,15 @@
 
 ACCELEROMETER_CFG_STRUCT accelerometer_cfg = {ADXL345_POWER_CTL, 0x08, ADXL345_DATA_FORMAT, 0x08};
 
+//// get gyro data
+//int16_t yaw_rate = 0, pitch_rate = 0, roll_rate = 0;
+//read_gyro_data(&hi2c1, &yaw_rate, &pitch_rate, &roll_rate);
+//
+//// get accel data
+//int16_t acc_x = 0, acc_y = 0, acc_z = 0;
+//read_accel_data(&hi2c1, &acc_x, &acc_y, &acc_z);
+
+
 void initialise_ptu_i2c(I2C_HandleTypeDef *i2c) {
 
 	HAL_StatusTypeDef return_value = 0x00;
@@ -50,26 +59,23 @@ void initialise_ptu_i2c(I2C_HandleTypeDef *i2c) {
 }
 
 
-
 void read_gyro_data (I2C_HandleTypeDef *i2c, int16_t *yaw, int16_t *pitch, int16_t *roll){
-	uint8_t xMSB = 0x00;
+	uint8_t xMSB = 0x00, xLSB = 0x00;
 	HAL_I2C_Mem_Read(i2c, gyro_rd, 0x29, 1, &xMSB, 1, 10);
-	uint8_t xLSB = 0x00;
 	HAL_I2C_Mem_Read(i2c, gyro_rd, 0x28, 1, &xLSB, 1, 10);
-	*yaw = ((xMSB << 8) | xLSB);
+	*yaw = ((int16_t)(xMSB << 8) | xLSB);
 
-	uint8_t yMSB = 0x00;
+	uint8_t yMSB = 0x00, yLSB = 0x00;
 	HAL_I2C_Mem_Read(i2c, gyro_rd, 0x2B, 1, &yMSB, 1, 10);
-	uint8_t yLSB = 0x00;
 	HAL_I2C_Mem_Read(i2c, gyro_rd, 0x2A, 1, &yLSB, 1, 10);
-	*pitch = ((yMSB << 8) | yLSB);
+	*pitch = ((int16_t)(yMSB << 8) | yLSB);
 
-	uint8_t zMSB = 0x00;
+	uint8_t zMSB = 0x00, zLSB = 0x00;
 	HAL_I2C_Mem_Read(i2c, gyro_rd, 0x2D, 1, &zMSB, 1, 10);
-	uint8_t zLSB = 0x00;
 	HAL_I2C_Mem_Read(i2c, gyro_rd, 0x2C, 1, &zLSB, 1, 10);
-	*roll = ((zMSB << 8) | zLSB);
+	*roll = ((int16_t)(zMSB << 8) | zLSB);
 }
+
 
 
 void read_accel_data(I2C_HandleTypeDef *i2c, int16_t *acc_x, int16_t *acc_y, int16_t *acc_z){
@@ -80,3 +86,4 @@ void read_accel_data(I2C_HandleTypeDef *i2c, int16_t *acc_x, int16_t *acc_y, int
 	*acc_y = (int16_t)((accel_data[3] << 8) | accel_data[2]);
 	*acc_z = (int16_t)((accel_data[5] << 8) | accel_data[4]);
 }
+

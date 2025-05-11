@@ -17,8 +17,9 @@ typedef enum {
     STRING_PACKET = 3,
 } MessageType;
 
+
 // Sensor data struct
-typedef struct __attribute__((packed)) {
+typedef struct {
     int32_t acc_x;
     int32_t acc_y;
     int32_t acc_z;
@@ -26,7 +27,7 @@ typedef struct __attribute__((packed)) {
     int32_t gyro_y;
     int32_t gyro_z;
     uint32_t lidar_pwm;
-    uint32_t lidar_i2c;
+//    uint32_t lidar_i2c;
 } SensorData;
 
 
@@ -46,7 +47,7 @@ typedef union {
 } LEDState;
 
 // Button and microcontroller status struct
-typedef struct __attribute__((packed)){
+typedef struct {
     uint8_t button_state : 1;
     uint8_t mcu_status : 7;
 } ButtonAndStatus;

@@ -14,6 +14,13 @@
 #include <string.h>
 #include <ctype.h>
 
+//extern int16_t yaw_rate;
+//extern int16_t pitch_rate;
+//extern int16_t roll_rate;
+//// get accel data
+//extern int16_t acc_x;
+//extern int16_t acc_y;
+//extern int16_t acc_z;
 
 void initialise_ptu_i2c(I2C_HandleTypeDef *i2c);
 
