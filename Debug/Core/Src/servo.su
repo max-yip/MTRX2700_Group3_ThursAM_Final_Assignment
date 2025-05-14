@@ -1,0 +1,7 @@
+../Drivers/CMSIS/Include/core_cm4.h:1688:22:__NVIC_EnableIRQ	16	static
+../Drivers/CMSIS/Include/core_cm4.h:1816:22:__NVIC_SetPriority	16	static
+../Core/Src/servo.c:22:6:trigger_prescaler	16	static,ignoring_inline_asm
+../Core/Src/servo.c:36:6:enable_interrupt	8	static,ignoring_inline_asm
+../Core/Src/servo.c:69:6:EXTI0_IRQHandler	8	static
+../Core/Src/servo.c:80:6:TIM2_IRQHandler	4	static
+../Core/Src/servo.c:89:6:rotate_servo_90	4	static
