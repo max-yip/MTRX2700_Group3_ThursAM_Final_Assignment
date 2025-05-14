@@ -1,15 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-<<<<<<< HEAD
-	<name>servo_interface</name>
-=======
-	<name>MTRX2700_Group3_ThursAM_Final_Assignment</name>
->>>>>>> 01f78dc247f91904773f66e872ccb0f0e22955df
+	<name>lcd_ldr2.c</name>
 	<comment></comment>
 	<projects>
 	</projects>
 	<buildSpec>
-<<<<<<< HEAD
 		<buildCommand>
 			<name>org.eclipse.cdt.managedbuilder.core.genmakebuilder</name>
 			<triggers>clean,full,incremental,</triggers>
@@ -33,9 +28,5 @@
 		<nature>com.st.stm32cube.ide.mcu.MCURootProjectNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
-=======
-	</buildSpec>
-	<natures>
->>>>>>> 01f78dc247f91904773f66e872ccb0f0e22955df
 	</natures>
 </projectDescription>
