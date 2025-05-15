@@ -3,7 +3,7 @@ import sys
 from PyQt6.QtWidgets import QApplication, QMainWindow, QHBoxLayout, QVBoxLayout, QWidget, QPushButton, QSlider, QDial
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 
-from dial import ColorfulDial
+from widgets.dial import ColorfulDial
 
 import struct
 import serial
@@ -28,7 +28,7 @@ def pack_buffer(message_type, data):
 def receive_and_unpack_buffer(ser):
     """
     data_length_map = {
-        MessageType.SENSOR_DATA: 8 * 4,   # 6 * int32_t + 2 * uint32_t
+        MessageType.SENSOR_DATA: 7 * 4,   # 6 * int32_t + 1 * uint32_t
         MessageType.LED_STATE: 1,         # 1 * uint8_t
         MessageType.BUTTON_AND_STATUS: 1, # 1 * uint8_t
     }
@@ -88,7 +88,7 @@ class SerialReader(QThread):
                 print (str(message_type))
 
                 if message_type == MessageType.SENSOR_DATA:
-                    sensor_data = struct.unpack('<iiiiiiII', data)
+                    sensor_data = struct.unpack('<iiiiiiI', data)
                     self.data_received.emit(list(sensor_data))
                     print('Sensor:', sensor_data)
 
@@ -98,7 +98,6 @@ class SerialReader(QThread):
 
                     if (sensor_data[0] & 0x01 == 1):
                         self.color_change.emit(True)
-                    else:
                         self.color_change.emit(False)
                         
 
@@ -211,7 +210,7 @@ class MainWindow(QMainWindow):
         self.dial2.setValue(data[4])
         self.dial3.setValue(data[5])
         self.slider1.setValue(data[6])
-        self.slider2.setValue(data[7])
+        # self.slider2.setValue(data[7])
 
 
 if __name__ == '__main__':

@@ -7,7 +7,7 @@ import time
 from PyQt6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QTextEdit, QSlider, QProgressBar, QLineEdit, QFrame, QSpacerItem, QSizePolicy,
-    QLCDNumber
+    QLCDNumber, QMainWindow, QMessageBox
 )
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QMovie, QPixmap, QPainter  # For GIFs
@@ -16,7 +16,7 @@ from PyQt6.QtGui import QMovie, QPixmap, QPainter  # For GIFs
 from dial import ColorfulDial
 
 #serialise functions import
-from serialise_handle import SerialReader
+from core.serial_handler import SerialReader
 
 
 # Get the directory where the script is located
@@ -68,10 +68,19 @@ class SpaceControlPanel(QWidget):
         center_layout.addSpacerItem(QSpacerItem(20, 10, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Expanding))
         
         # Number label
-        self.lidar_distance = QLCDNumber()
-        self.lidar_distance.setDigitCount(5)  # Width
-        self.lidar_distance.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
-        center_layout.addWidget(self.lidar_distance)
+        planets_dist = QHBoxLayout()
+
+        self.lidar_dist1 = QLCDNumber()
+        self.lidar_dist2 = QLCDNumber()
+        self.lidar_dist3 = QLCDNumber()
+
+        for lcd in [self.lidar_dist1, self.lidar_dist2, self.lidar_dist3]:
+            lcd.setFixedSize(80, 50)
+            lcd.setDigitCount(5)  # Width
+            lcd.setSegmentStyle(QLCDNumber.SegmentStyle.Flat)
+            planets_dist.addWidget(lcd)
+
+        center_layout.addLayout(planets_dist)
         
         # === button ===
         btn1 = QPushButton("Calculate")
@@ -229,10 +238,10 @@ class SpaceControlPanel(QWidget):
 
     def handle_serial_data(self, data):
         #print(f"Data read from serial port: {data}")``
-        self.dial1.setValue(data[3])
-        self.dial2.setValue(data[4])
-        self.dial3.setValue(data[5])
-        self.lidar_distance.display(data[6])
+        self.dial1.setValue(data[3]) #roll
+        self.dial2.setValue(data[4]) #pitch
+        self.dial3.setValue(data[5]) #yaw
+        self.lidar_dist1.display(data[6])
         # self.slider2.setValue(data[7])
 
     def send_servo_command(self):
@@ -242,8 +251,17 @@ class SpaceControlPanel(QWidget):
         print(message)
         self.serial_reader.serial_port.write(message.encode())
 
+def show_startup_popup():
+    msg = QMessageBox()
+    msg.setWindowTitle("Welcome")
+    msg.setText("Summary of the game and what you need to do")
+    msg.setIcon(QMessageBox.Icon.Information)
+    msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+    msg.exec()
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     panel = SpaceControlPanel()
     panel.show()
+    show_startup_popup()
     sys.exit(app.exec())

@@ -51,7 +51,7 @@ EXTI->RTSR |= EXTI_RTSR_TR0; // rising edge of EXTI line 0 (includes PA0)
 EXTI->IMR |= EXTI_IMR_MR0;
 
 // Tell the NVIC module that EXTI0 interrupts should be handled
-NVIC_SetPriority(EXTI0_IRQn, 3); // set priority
+NVIC_SetPriority(EXTI0_IRQn, 1); // set priority
 NVIC_EnableIRQ(EXTI0_IRQn);
 
 RCC->APB1ENR |= RCC_APB1ENR_PWREN | RCC_APB1ENR_TIM2EN; // power APB1 and timer 2
