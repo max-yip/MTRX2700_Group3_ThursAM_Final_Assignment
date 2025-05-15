@@ -4,64 +4,64 @@
  *  Created on: Apr 27, 2025
  *      Author: Paul Akle
  */
-// flexpot.c
 #include "flexpot.h"
 #include "stm32f303xc.h"   // CMSIS
 
-// below this raw ADC count we treat as “no touch”
 #define NO_TOUCH_THRESHOLD   100U
+#define FLEXPOT_STEPS        6U   // we want positions 1..6
 
 void FlexPot_Init(void) {
-    // enable GPIOC & ADC12
+    // 1) Enable GPIOC & ADC12 clocks
     RCC->AHBENR |= RCC_AHBENR_GPIOCEN
                  | RCC_AHBENR_ADC12EN;
 
-    // PC0 → analog
-    GPIOC->MODER |= (3U << (0 * 2));
+    // 2) PC0 & PC2 → analog
+    GPIOC->MODER |= (3U << (0*2))      // PC0 = IN6
+                  | (3U << (2*2));     // PC2 = IN8
 
-    // ADC clock = PCLK/1
+    // 3) ADC clock = PCLK/1
     ADC12_COMMON->CCR = (ADC12_COMMON->CCR & ~ADC12_CCR_CKMODE)
-                      |  ADC12_CCR_CKMODE_0;
+                      | ADC12_CCR_CKMODE_0;
 
-    // power up ADC regulator
+    // 4) Power up ADC regulator & delay
     ADC1->CR = (ADC1->CR & ~ADC_CR_ADVREGEN)
-             |  ADC_CR_ADVREGEN_0;
+             | ADC_CR_ADVREGEN_0;
     for (volatile int i = 0; i < 1000; i++);
 
-    // self-calibrate single-ended
+    // 5) Self‐calibrate
     ADC1->CR &= ~ADC_CR_ADCALDIF;
-    ADC1->CR |=  ADC_CR_ADCAL;
+    ADC1->CR |= ADC_CR_ADCAL;
     while (ADC1->CR & ADC_CR_ADCAL);
 
-    // long sample time on IN6 (PC0)
-    ADC1->SMPR1 &= ~(0x7U << ADC_SMPR1_SMP6_Pos);
-    ADC1->SMPR1 |=  (0x7U << ADC_SMPR1_SMP6_Pos);
+    // 6) Long sample time on IN6 (PC0) & IN8 (PC2)
+    ADC1->SMPR1 = (0x7U << ADC_SMPR1_SMP6_Pos)   // channel 6
+                | (0x7U << ADC_SMPR1_SMP8_Pos);  // channel 8
 
-    // enable ADC1
+    // 7) Enable ADC & wait for ready
     ADC1->ISR |= ADC_ISR_ADRDY;
     ADC1->CR  |= ADC_CR_ADEN;
     while (!(ADC1->ISR & ADC_ISR_ADRDY));
 }
 
-uint8_t FlexPot_GetPosition(void) {
-    // select channel 6 (PC0) for one conversion
-    ADC1->SQR1 = (6U << ADC_SQR1_SQ1_Pos);
+/// Poll one channel once, map raw→1..6
+uint8_t FlexPot_GetPosition(uint8_t channel) {
+    // 1) Select channel for single conversion
+    ADC1->SQR1 = ((uint32_t)channel << ADC_SQR1_SQ1_Pos);
 
-    // start & wait
+    // 2) Start conversion
     ADC1->CR |= ADC_CR_ADSTART;
     while (!(ADC1->ISR & ADC_ISR_EOC));
 
-    uint32_t raw = ADC1->DR & 0x0FFF;  // 0..4095
+    // 3) Read & clear
+    uint32_t raw = ADC1->DR & 0x0FFF;
 
-    // if below threshold → no touch
+    // 4) No‐touch?
     if (raw < NO_TOUCH_THRESHOLD) {
         return 0;
     }
 
-    // map raw [0..4095] → pos [1..8]
-    // multiply by 7 so the max raw (4095) gives 7, +1 → 8
-    uint8_t pos = (raw * 7U) / 4095U + 1U;
-    if (pos > 8U) pos = 8U;
+    // 5) Map 0..4095 → 1..FLEXPOT_STEPS
+    uint8_t pos = (raw * (FLEXPOT_STEPS - 1U)) / 4095U + 1U;
+    if (pos > FLEXPOT_STEPS) pos = FLEXPOT_STEPS;
     return pos;
 }
-
