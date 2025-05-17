@@ -66,6 +66,9 @@ bool unpack_buffer(const uint8_t *buffer, Data *output_data, MessageType *output
             output_data->string_packet.length = *output_data_length;
             output_data->string_packet.data = (char *)(buffer + buffer_idx);
             break;
+        case SERVO_PWM:
+        	memcpy(&output_data->servo_data, buffer + buffer_idx, sizeof(ServoData));
+        	break;
     }
 
     return true;

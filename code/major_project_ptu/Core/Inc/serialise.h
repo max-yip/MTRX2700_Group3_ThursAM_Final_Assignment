@@ -15,6 +15,7 @@ typedef enum {
     LED_STATE = 1,
     BUTTON_AND_STATUS = 2,
     STRING_PACKET = 3,
+	SERVO_PWM = 4
 } MessageType;
 
 
@@ -29,6 +30,13 @@ typedef struct {
     uint32_t lidar_pwm;
 //    uint32_t lidar_i2c;
 } SensorData;
+
+
+// Servo data struct
+typedef struct{
+	uint16_t pwm1;
+	uint16_t pwm2;
+} ServoData;
 
 
 // LED state struct
@@ -64,6 +72,7 @@ typedef union {
     LEDState led_state;
     ButtonAndStatus button_and_status;
     StringPacket string_packet;
+    ServoData servo_data;
 } Data;
 
 // Header structure

@@ -1,11 +1,13 @@
 from PyQt6.QtWidgets import QWidget, QHBoxLayout, QMessageBox
 from PyQt6.QtGui import QPixmap, QPainter, QColor
 import os
+import struct
+import serial
 
 from ui.left_panel import create_left_panel
 from ui.center_panel import create_center_panel
 from ui.right_panel import create_right_panel
-from core.serial_handler import SerialReader
+from core.serial_handler import SerialReader, pack_buffer, MessageType
 
 basedir = os.path.dirname(__file__)
 basedir = os.path.abspath(os.path.join(basedir, ".."))
@@ -16,17 +18,22 @@ class SpaceControlPanel(QWidget):
         self.setWindowTitle("Spaceship Control Panel")
         self.setGeometry(100, 100, 1100, 700)
         self.bg = QPixmap(os.path.join(basedir, 'assets', 'space_bg2.jpg'))
+        self.fuel = 3  # Initialize fuel to 3
 
         self.planet_index = 0  # Start with the first LCD and dial
         self.planet_data_storage = {0:[0,1551,''], 1:[0,1551,''], 2:[0,1551,'']}  
         # Store data for each planet index:[lidar_distance, dial_value, dial color]
+        
+        self.planet_target = {0:[[350,450],[1545,1565]], 1:[[350, 450],[1545,1565]], 2:[[350,450],[1545,1565]]}
+        # Store target ranges for each planet index:[[lidar_range],[slider_range]]
+
         self.initUI()
         self.start_serial_reading('/dev/tty.usbmodem1103')
 
     def initUI(self):
         layout = QHBoxLayout(self)
 
-        self.left_panel, self.fuel_bar = create_left_panel()
+        self.left_panel, self.fuel_bar = create_left_panel(self.fuel, self)
         self.center_panel, self.dials, self.lcds, self.sliders = create_center_panel(self.send_servo_command, self)
         self.right_panel, self.chat_display, self.chat_input = create_right_panel(self.process_chat_input)
 
@@ -48,21 +55,20 @@ class SpaceControlPanel(QWidget):
         curr_index = self.planet_index
         lidar_distance = data[6]  # lidar distance (mm)
         slider_value = self.sliders[0].value()  # slider[0] value
-        target_slider_range = [1545, 1565]  # predefined target distance
-        target_slider_value = 1551  # predefined slider value
-        target_lidar_range = [400, 410]  # predefined target lidar range
+        target_slider_value = sum(self.planet_target[curr_index][1])/2  # predefined target distance
+        target_lidar_range = sum(self.planet_target[curr_index][0])/2  # predefined target lidar range
 
         # Update LCD with lidar distance
         self.lcds[curr_index].display(lidar_distance)
 
         # Change LCD color based on lidar distance
-        if lidar_distance < min(target_lidar_range):
-            green_to_red_ratio = max(0, min(1, (min(target_lidar_range) - lidar_distance) / min(target_lidar_range)))
+        if lidar_distance < target_lidar_range:
+            green_to_red_ratio = max(0, min(1, (target_lidar_range - lidar_distance) / target_lidar_range))
             color = QColor(int(255 * (green_to_red_ratio)), int(255 * (1 - green_to_red_ratio)), 0)
             self.lcds[curr_index].setStyleSheet(f"color: rgb({color.red()}, {color.green()}, {color.blue()});")
 
-        elif lidar_distance > max(target_lidar_range):
-            green_to_red_ratio = max(0, min(1, (lidar_distance - max(target_lidar_range)) / max(target_lidar_range)))
+        elif lidar_distance > target_lidar_range:
+            green_to_red_ratio = max(0, min(1, (lidar_distance - target_lidar_range) / target_lidar_range))
             color = QColor(int(255 * green_to_red_ratio), int(255 * (1 - green_to_red_ratio)), 0)
             self.lcds[curr_index].setStyleSheet(f"color: rgb({color.red()}, {color.green()}, {color.blue()});")
         
@@ -72,14 +78,14 @@ class SpaceControlPanel(QWidget):
         # Update dial color and value
         sensitivity = 10.0  # Higher = more sensitive color change
 
-        if slider_value < min(target_slider_range):
+        if slider_value < target_slider_value:
             self.dials[curr_index].setValue(slider_value)  # Move left
             green_to_red_ratio = (target_slider_value - slider_value) * sensitivity / target_slider_value
             green_to_red_ratio = max(0, min(1, green_to_red_ratio))
             color = QColor(int(255 * green_to_red_ratio), int(255 * (1 - green_to_red_ratio)), 0)
             self.dials[curr_index].setDialColor(color)
 
-        elif slider_value > max(target_slider_range):
+        elif slider_value > target_slider_value:
             self.dials[curr_index].setValue(slider_value)  # Move right
             green_to_red_ratio = (slider_value - target_slider_value) * sensitivity / target_slider_value
             green_to_red_ratio = max(0, min(1, green_to_red_ratio))
@@ -95,6 +101,14 @@ class SpaceControlPanel(QWidget):
         msg = f"{pwm1},{pwm2}\n"
         # print(msg)
         self.serial_reader.serial_port.write(msg.encode())
+        # data = struct.pack('<HH', pwm1, pwm2)
+        # buffer = pack_buffer(MessageType.SERVO_PWM.value, data)
+        # # Use the serial port from SerialReader
+        # if hasattr(self, 'serial_reader') and self.serial_reader.serial_port and self.serial_reader.serial_port.is_open:
+        #     self.serial_reader.serial_port.write(buffer)
+        #     print(f"Sent servo command: {pwm1}, {pwm2}")
+        # else:
+        #     print("Serial port not open!")
 
     def process_chat_input(self):
         from core.logic import generate_chat_response
@@ -174,4 +188,47 @@ class SpaceControlPanel(QWidget):
         self.planet_data_storage[current_index] = [curr_lidar_distance, curr_dial_value, curr_dial_color]
         # print(f"Saved data for planet {current_index}: {self.planet_data_storage[current_index]}")
         
-        print(self.planet_data_storage)
+        check_lidar1 = self.planet_data_storage[0][0] > min(self.planet_target[0][0]) and self.planet_data_storage[0][0] < max(self.planet_target[0][0])
+        check_pwm1 = self.planet_data_storage[0][1] > min(self.planet_target[0][1]) and self.planet_data_storage[0][1] < max(self.planet_target[0][1])
+
+        check_lidar2 = self.planet_data_storage[1][0] > min(self.planet_target[1][0]) and self.planet_data_storage[1][0] < max(self.planet_target[1][0])
+        check_pwm2 = self.planet_data_storage[1][1] > min(self.planet_target[1][1]) and self.planet_data_storage[1][1] < max(self.planet_target[1][1])
+        
+        check_lidar3 =  self.planet_data_storage[2][0] > min(self.planet_target[2][0]) and self.planet_data_storage[2][0] < max(self.planet_target[2][0])
+        check_pwm3 = self.planet_data_storage[2][1] > min(self.planet_target[2][1]) and self.planet_data_storage[2][1] < max(self.planet_target[2][1])
+
+        check_all_ldrs = check_lidar1 and check_lidar2 and check_lidar3
+        check_all_pwms = check_pwm1 and check_pwm2 and check_pwm3
+
+        if check_all_ldrs and check_all_pwms:
+            # create a popup message saying that the coordinates are correct
+            msg = QMessageBox()
+            msg.setWindowTitle("Coordinates Check")
+            msg.setText("Coordinates of the hidden planet has successfully been calculated! Travelling to the next planet...")
+            msg.setIcon(QMessageBox.Icon.Information)
+            msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+            msg.buttonClicked.connect(self.on_popup_closed)
+            msg.exec()
+        else:
+            # create a popup message saying that the coordinates are incorrect
+            if self.fuel > 0:
+                self.fuel -= 1
+                self.fuel_bar.setValue(self.fuel)
+                msg = QMessageBox()
+                msg.setWindowTitle("Coordinates Check")
+                msg.setText("Calculations are incorrect! You went to the wrong planet! (-1/3 fuel)")
+                msg.setIcon(QMessageBox.Icon.Warning)
+                msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+                msg.buttonClicked.connect(self.on_popup_closed)
+                msg.exec()
+
+            if self.fuel == 0:
+                msg = QMessageBox()
+                msg.setWindowTitle("Coordinates Check")
+                msg.setText("Calculations are incorrect! You have run out of fuel!")
+                msg.setIcon(QMessageBox.Icon.Warning)
+                msg.setStandardButtons(QMessageBox.StandardButton.Ok)
+                msg.buttonClicked.connect(self.on_popup_closed)
+                msg.exec()
+                #close app
+                self.close()

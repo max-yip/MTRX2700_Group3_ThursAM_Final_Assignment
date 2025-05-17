@@ -98,16 +98,17 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
-	enableGPIOClocks(); //clock function above -- need to modularise
-	enableGPIOELEDS(); // initialise leds
+//
+//	enableGPIOClocks(); //clock function above -- need to modularise
+//	enableGPIOELEDS(); // initialise leds
 
 	serialInitialise(BAUD_115200, &USART1_PORT, &servo_command_parser);
+//	&servo_command_parser
 	serialReceiveInterrupt(&USART1_PORT);
 
-	LedRegister *led_register = ((uint8_t*)&(GPIOE->ODR)) + 1;
+//	LedRegister *led_register = ((uint8_t*)&(GPIOE->ODR)) + 1;
 
-	HAL_StatusTypeDef return_value = HAL_OK;  // previous operation succeeded.
+//	HAL_StatusTypeDef return_value = HAL_OK;  // previous operation succeeded.
 
 	volatile uint16_t vertical_PWM = 1551;
 	volatile uint16_t horizontal_PWM = 1551;
@@ -146,8 +147,8 @@ int main(void)
   	initialise_ptu_i2c(&hi2c1);
 
   	//reset lidar board
-  	uint8_t reset_value = 0x00;
-  	return_value = HAL_I2C_Mem_Write(&hi2c1, LIDAR_WR, 0x00, 1, &reset_value, 1, 10);
+  	uint8_t return_value = 0x00;
+  	return_value = HAL_I2C_Mem_Write(&hi2c1, LIDAR_WR, 0x00, 1, &return_value, 1, 10);
 
   	// initialise servo pwm
   	return_value = initialise_ptu_pwm(&htim1, &htim2);
@@ -168,7 +169,7 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
-	  	// do these in interrupts
+	  	// do these in interrupts (work in progress)
 		// get gyro data
 	  	int16_t yaw_rate = 0, pitch_rate = 0, roll_rate = 0;
 	  	read_gyro_data(&hi2c1, &yaw_rate, &pitch_rate, &roll_rate);
@@ -236,36 +237,43 @@ int main(void)
 		serialOutputBuffer(sensor_data_packet_buffer, sensor_data_buffer_length, &USART1_PORT); // Send the buffer over serial
 
 
-
-
-
-
-
 		// lidar needs to do more smoothing now that its sending data way faster
 		// servo interrupts cant do shit cuz its sending too fast
 
 
+		// Read a data packet from serial
 
-
-
-//		GPIO STUFF
-		// Read a data packet from serial that has the LED state
 		uint8_t data_packet_input_buffer[32] = {0};
-		uint16_t data_packet_size = serialInputPacketHeader(data_packet_input_buffer, &USART1_PORT);
 
-		// copy the data to a header structure
-		Header incoming_header = {0};
-		memcpy(&incoming_header, data_packet_input_buffer, sizeof(Header));
-
-		if (incoming_header.message_type == LED_STATE) {
-			LEDState desired_led_state = {0};
-			uint8_t success = serialInputDataPacket(&desired_led_state, sizeof(desired_led_state), &USART1_PORT);
-
-			if (success > 0) {
-				//uint8_t tmp = desired_led_state.led_byte;
-				led_register->all_leds = desired_led_state.led_byte;
-			}
+		// Step 1: Read header
+		uint16_t header_size = serialInputPacketHeader((char *)data_packet_input_buffer, &USART1_PORT);
+		if (header_size == 0) {
+		    // Handle header receive failure
 		}
+
+//		// Step 2: Parse header
+//		Header incoming_header = {0};
+//		memcpy(&incoming_header, data_packet_input_buffer, sizeof(Header));
+//
+//		if (incoming_header.message_type == SERVO_PWM) {
+//		    // Step 3: Read the payload
+//		    uint16_t payload_len = incoming_header.data_length;
+//		    uint8_t data_payload_buffer[32] = {0};  // or allocate dynamically if needed
+//
+//		    uint16_t success = serialInputDataPacket((char *)data_payload_buffer, payload_len, &USART1_PORT);
+//		    if (success != payload_len) {
+//		        // Handle payload receive failure
+//		    }
+//
+//		    // Step 4: Unpack data
+//		    Data data_union = {0};
+//		    memcpy(&data_union.servo_data, data_payload_buffer, sizeof(ServoData));  // or use unpack_buffer if you want
+//
+//		    // Step 5: Use the data
+//		    setServoPWM(data_union.servo_data.pwm1, data_union.servo_data.pwm2);
+//		}
+
+
 		/* USER CODE BEGIN 3 */
 	}
   /* USER CODE END 3 */

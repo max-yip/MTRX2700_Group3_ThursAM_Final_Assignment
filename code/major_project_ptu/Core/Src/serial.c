@@ -418,7 +418,7 @@ uint16_t serialInputDataPacket(char *buffer, int length, SerialPort *serial_port
 			return 0;
 
 		buffer[index++] = receivedChar;
-		}
+	}
 
 	return index;
 }
