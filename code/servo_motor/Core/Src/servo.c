@@ -10,8 +10,6 @@
 #include "servo.h"
 
 
-volatile uint8_t move_servo = 0; // acts as flag such that servo only moves when flag is raised (move_servo==1)
-
 
 // store a pointer to the function that is called when a button is pressed
 // set a default value of NULL so that it won't be called until the
@@ -19,18 +17,17 @@ volatile uint8_t move_servo = 0; // acts as flag such that servo only moves when
 void (*on_button_press)() = 0x00;
 
 
-void trigger_prescaler(uint8_t prescaler, TIM_TypeDef *TIMER){
-TIMER->PSC = prescaler;
-TIMER->ARR |= 0x01; // set ARR to 1 (quick overflow to get it started)
-TIMER->CNT |= 0x00; // reset counter
-asm("NOP");
-asm("NOP");
-asm("NOP");
-asm("NOP");
-TIMER->ARR |= 0xFFFFFFFF; // set ARR back to default value (slow overflow)
-TIMER->CR1 |= TIM_CR1_CEN; // start the counter counting
-
+// enable the clocks for desired peripherals (GPIOA, C and E)
+void enable_clocks() {
+	RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIOEEN;
 }
+
+
+void enableGPIOAButton() {
+	GPIOA->MODER &= ~(0x3 << (0 * 2));
+	return;
+}
+
 
 
 void enable_interrupt() {
@@ -51,15 +48,8 @@ EXTI->RTSR |= EXTI_RTSR_TR0; // rising edge of EXTI line 0 (includes PA0)
 EXTI->IMR |= EXTI_IMR_MR0;
 
 // Tell the NVIC module that EXTI0 interrupts should be handled
-NVIC_SetPriority(EXTI0_IRQn, 1); // set priority
+NVIC_SetPriority(EXTI0_IRQn, 3); // set priority
 NVIC_EnableIRQ(EXTI0_IRQn);
-
-RCC->APB1ENR |= RCC_APB1ENR_PWREN | RCC_APB1ENR_TIM2EN; // power APB1 and timer 2
-
-TIM2->DIER |= TIM_DIER_CC2IE;
-
-NVIC_SetPriority(TIM2_IRQn, 2); // Set Priority
-NVIC_EnableIRQ(TIM2_IRQn);
 
 // Re-enable all interrupts (now that we are finished)
 __enable_irq();
@@ -77,22 +67,13 @@ EXTI->PR |= EXTI_PR_PR0;
 }
 
 
-void TIM2_IRQHandler(void){
-// check if timer hit the target value (dependent on psc value)
-if (TIM2->SR & TIM_SR_CC2IF) {
-move_servo = 1; // raise flag to allow servo to rotate
-TIM2->SR &= ~TIM_SR_CC2IF; // Clear the CC2IF flag
-	}
-}
-
 
 void rotate_servo_90(){
-	// if flag is raised rotate the servo 90 degrees
-	if (move_servo) {
-		TIM2->CCR1 = 1500; // 90 degrees 1.5ms PWM
+		TIM2->CCR1 = 1800;
+		TIM2->CCR2 = 1800;
 
-	move_servo = 0; // flag is back down after the servo has rotated 90 degrees
+
 	}
-}
+
 
 
