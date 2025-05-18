@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "servo.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -74,8 +75,6 @@ static void MX_TIM2_Init(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	// set the interrupt handling function
-
 
   /* USER CODE END 1 */
 
@@ -101,7 +100,9 @@ int main(void)
   MX_SPI1_Init();
   MX_USB_PCD_Init();
   MX_TIM2_Init();
+
   /* USER CODE BEGIN 2 */
+
 
   /* USER CODE END 2 */
 
@@ -111,17 +112,20 @@ int main(void)
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_2);
 
-  on_button_press = &rotate_servo_90;
+  enable_clocks();
+  enableGPIOAButton();
 
-  // enable the interrupt for the button
+  on_button_press = &rotate_servo_90;
   enable_interrupt();
 
-  trigger_prescaler(7, TIM2);
 
-  while (1) {
-	// Do nothing - everything is driven by interrupts
+  while (1)
+  {
+
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
   }
-
   /* USER CODE END 3 */
 }
 
