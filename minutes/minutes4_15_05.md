@@ -15,7 +15,7 @@
 | Shuvayu Benerjee     | Present  |  |
 
 ## Agenda  
-- [x] **Item 1** - Designing physical interfaces (Planets and Grid)
+- [x] **Item 1** - Implement game logic
 - [x] **Item 2** - Finalise current sensor interfaces
 - [x] **Item 3** - Integrate interfaces to perform puzzles
 
@@ -24,11 +24,11 @@
 | Task | Assigned To | Due Date | Status |
 |------|------------|---------|--------|
 | Build physical game interface + Integration| Paul Akle | Week 12 | In Progress |
-| Filter code + Integration | Max Yip | Week 12 | In Progress |
+| Try to get ldr colour detection working and finish up puzzle 1 game logic | Max Yip | Week 12 | In Progress |
 | Servo Interface | Aditya Kathane | Week 9 | Unknown |
 | LDR + LCD screen interface | Siya Sharma | Week 12 | In pogress |
-| 3D print required objects | all | Week 12 | In Progress  |
-| Design planet for puzzle 1 + servo interface | Shuvayu Benerjee | Week 12 | In Progress  |
+| 3D print required objects | all | Week 12 | Completed  |
+| servo code and readme section of the servo | Shuvayu Benerjee | Week 12 | In Progress  |
 
 
 ## Next Steps  
