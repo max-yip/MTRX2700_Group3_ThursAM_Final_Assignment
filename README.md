@@ -129,13 +129,25 @@ Shuvayu Banerjee <br>
 </details>
 
 <details>
-  <summary>Servo</summary>
-  
-  ### PTU module
-  - briefly explain the challenge
-  - how to connect to the board and set it up
-  - buttons and controls available
-  
+  <summary>Servo Motor</summary>
+
+  ### Summary
+
+
+  ### Usage
+
+
+  ### Valid Input
+
+
+  ### Functions and Modularity
+
+
+  ### Testing 
+
+
+  ### Notes
+
 </details>
 
 Code from MTRX2700-2025 was used and refactored, and code from ThursAM_Group6_CLab was used in this assignment.
