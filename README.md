@@ -19,21 +19,29 @@ Shuvayu Banerjee <br>
 <details>
   <summary>Challenge 1</summary>
   
-  ### PTU triangulating planets
+  ### Triangulating Planets with PTU
   
 </details>
 <details>
   <summary>Challenge 2</summary>
   
-  ### XOR
+  ### Asteroid Shooting
   
 </details>
 <details>
   <summary>Challenge 3</summary>
   
-  ### TBD
+  ### Map Coordinates with Flexible Potentiometer
   
 </details>
+
+<details>
+  <summary>Challenge 4</summary>
+
+  ### Assembling the Lightsaber
+
+</details>
+
 
 ## Modules
 <details>
@@ -67,7 +75,7 @@ Shuvayu Banerjee <br>
   - briefly explain the challenge
   - how to connect to the board and set it up
   - buttons and controls available
-  
+
 </details>
 
 <details>
