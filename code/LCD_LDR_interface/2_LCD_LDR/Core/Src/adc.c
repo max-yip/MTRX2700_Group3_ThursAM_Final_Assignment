@@ -1,9 +1,3 @@
-/*
- * adc.c
- *
- *  Created on: May 18, 2025
- *      Author: siya
- */
 
 #include "adc.h"
 

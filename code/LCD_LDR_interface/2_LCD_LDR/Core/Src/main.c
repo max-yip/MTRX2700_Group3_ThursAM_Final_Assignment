@@ -1,7 +1,7 @@
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
-  * @file           : main.c
+  * @file           : main.c 2_LCD_LDR
   * @brief          : Main program body
   ******************************************************************************
   * @attention
@@ -26,6 +26,8 @@
 #include "string.h"
 #include "i2c.h"
 #include "adc.h"
+#include "timer.h"
+
 
 /* USER CODE END Includes */
 
@@ -36,7 +38,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LIGHT_THRESHOLD 3500
+#define LIGHT_THRESHOLD 3400
 
 /* USER CODE END PD */
 
@@ -105,7 +107,14 @@ int main(void)
   MX_SPI1_Init();
   MX_USB_PCD_Init();
   /* USER CODE BEGIN 2 */
+  HD44780_Init(2);
+  HD44780_Backlight();
+
   initialiseSingleADC();
+  init_TIM2_for_delay();
+
+  uint8_t last_state = 255; // Invalid initial state to force first update
+
 
   /* USER CODE END 2 */
 
@@ -116,18 +125,27 @@ int main(void)
 	  // Use your manual ADC function instead of HAL
 	      lux = readLDR_ADC();
 
-	      // Display based on threshold
-	      if (lux > LIGHT_THRESHOLD) {
-	          HD44780_Clear();
-	          HD44780_SetCursor(0, 0);
-	          HD44780_PrintStr("Place crystal");
-	          HD44780_SetCursor(0, 1);
-	          HD44780_PrintStr("on handle!");
-	      } else {
-	          HD44780_Clear();
+	      uint8_t current_state = (lux > LIGHT_THRESHOLD) ? 1 : 0;
+
+	      if (current_state != last_state) {
+	    	  HD44780_Clear();
+
+	      if (current_state) {
+	    	  HD44780_SetCursor(0, 0);
+	    	  HD44780_PrintStr("Place crystal");
+	    	  HD44780_SetCursor(0, 1);
+	    	  HD44780_PrintStr("on handle!");
+	          } else {
+	        	  HD44780_SetCursor(0, 0);
+	        	  HD44780_PrintStr("Too dark...");
+	                  }
+
+	      last_state = current_state;
+
 	      }
 
-	      HAL_Delay(500);
+	      delay_ms(500);
+
 
     /* USER CODE END WHILE */
 
