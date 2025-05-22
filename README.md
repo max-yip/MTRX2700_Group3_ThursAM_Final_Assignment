@@ -7,6 +7,8 @@ Siya Sharma 510451145 <br>
 Shuvayu Banerjee 540752353 <br>
 
 ## Assignment Purpose
+To design and implement proof-of-concept technology for a high-tech treasure hunt experience by incorporating a number of different
+microcontroller subsystems, sensors, and an actuator.
 
 ## Roles and Responsibilities
 Paul Akle <br>
