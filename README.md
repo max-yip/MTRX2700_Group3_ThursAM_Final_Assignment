@@ -127,7 +127,17 @@ Shuvayu Banerjee <br>
 </details>
 
 <details>
-  <summary>LDR and LCD display</summary>
+  <summary>LCD display</summary>
+  
+  ### PTU module
+  - briefly explain the challenge
+  - how to connect to the board and set it up
+  - buttons and controls available
+  
+</details>
+
+<details>
+  <summary>LDR</summary>
   
   ### PTU module
   - briefly explain the challenge
