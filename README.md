@@ -19,9 +19,31 @@ Shuvayu Banerjee <br>
 <details>
   <summary>Challenge 1</summary>
   
-  ### Triangulating Planets with PTU
+  ### Triangulating the hidden planet location
+
+  The player is tasked to locate the hidden planet by measuring the distances of the nearest 3 stars before the fuel runs out.
+  
+  ### How it works
+  1. Users will be required to control the servos of the PTU through the GUI to adjust the lidar to point towards the correct planet.
+  2. As the user moves the PTU, the GUI will display the distance and indicate whether the angle of the PTU is correct. The user will have to get the coordinates before moving onto the next planet.
+  3. Once the player gets the distance or the timer runs out, the STM32 will signal the GUI to move onto the next planet.
+  4. Once all the distances are obtained, it will reveal coordinates to the hidden planet.
+  5. Move on to the next challenge: during the travel, the user encounters an asteroid field and is required to shoot them down.
+
+  ### Flowchart
+  *(Insert flowchart image here)*
+
+  ### Additional Features
+  - **Pop-up windows**  
+    - At the beginning, to give the user the background of the game  
+    - User feedback on whether the distances measured from the PTU are correct  
+    - Final pop-up window directing the user to the next challenge  
+
+  - **Chatbot**  
+    - Friendly cat companion that gives hints to guide the user throughout the entire treasure hunt
   
 </details>
+
 <details>
   <summary>Challenge 2</summary>
   
@@ -39,6 +61,12 @@ Shuvayu Banerjee <br>
   <summary>Challenge 4</summary>
 
   ### Assembling the Lightsaber
+  The final step in this treasure hunt is to verify that the crystal obtained from challenge 3 is the correct one.
+
+  ### How it works
+  1. User will insert the crystal into the hole inside the lightsaber hilt.
+  2. The colour detection system will determine the colour of the crystal.
+  3. When the user presses a button, the LED will either glow green (if a green crystal is inserted), red (if a red crystal is inserted), or remain off if no colour is detected.
 
 </details>
 
