@@ -26,9 +26,9 @@
 | Build physical game interface + Integration| Paul Akle | Week 12 | In Progress |
 | Try to get ldr colour detection working and finish up puzzle 1 game logic | Max Yip | Week 12 | In Progress |
 | Servo Interface | Aditya Kathane | Week 9 | Unknown |
-| LDR + LCD screen interface | Siya Sharma | Week 12 | Working |
+| LDR + LCD screen interface | Siya Sharma | Week 12 | Completed |
 | 3D print required objects | all | Week 12 | Completed  |
-| servo code and readme section of the servo | Shuvayu Benerjee | Week 12 | In Progress  |
+| Readme for servo | Shuvayu Benerjee | Week 12 | In Progress  |
 
 
 ## Next Steps  
