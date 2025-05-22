@@ -17,7 +17,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+ #include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -25,6 +25,7 @@
 #include "math.h"
 #include "beam.h"
 #include "flexpot.h"
+#include "servo.h"
 #include "stm32f303xc.h"
 #include "stm32f3xx_hal.h"   // brings in UART_HandleTypeDef, HAL_Delay, etc.
 #include <stdio.h>          // for snprintf()
@@ -33,7 +34,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define NO_TOUCH_THRESHOLD   100U
+#define NO_TOUCH_THRESHOLD   100U // def in flex
 #define FLEXPOT_STEPS        6U   // we want positions 1..6
 /* USER CODE END PTD */
 
@@ -82,9 +83,9 @@ static void MX_ADC1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 // enable the clocks for desired peripherals (GPIOA, C and E)
-void enable_clocks() {
-	RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIOEEN;
-}
+//void enable_clocks() {
+//	RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIOEEN;
+//}
 
 
 // initialise the discovery board I/O (just outputs: inputs are selected by default)
@@ -179,14 +180,13 @@ int main(void)
 	enable_clocks();
 	initialise_board();
 
+
 	LedRegister *led_register = ((uint8_t*)&(GPIOE->ODR)) + 1;
 
 	SerialInitialise(BAUD_115200, &USART1_PORT, 0x00);
 
 	HAL_StatusTypeDef return_value = 0x00;
 
-	volatile uint16_t vertical_PWM = 1000;
-	volatile uint16_t horizontal_PWM = 1000;
 
   // initialize PC1 beam-break sensor
   Beam_Init();
@@ -205,13 +205,12 @@ int main(void)
        uint8_t x = FlexPot_GetPosition(6);  // IN6 = PC0
        uint8_t y = FlexPot_GetPosition(8);  // IN8 = PC2
 
-       // 1) If we've hit the target, announce it and stop.
        if (x == 3 && y == 3) {
+           rotate_servo_90();   // ← swing both channels to 1.8 ms (90°)
            int len = snprintf(buf, sizeof(buf),
                               "Correct! Coordinates are 3,3\r\n");
            SerialOutputString((uint8_t*)buf, &USART1_PORT);
-           // stop here
-           while (1) { /* forever */ }
+
        }
 
        // 2) Otherwise, print coords and give feedback
