@@ -143,27 +143,112 @@ assets/
 
 <details>
   <summary>PTU</summary>
-  
-  ### PTU module
-  - briefly explain the challenge
-  - how to connect to the board and set it up
-  - buttons and controls available
 
-  <summary>PTU servo drivers</summary>
-  
-  ### PTU module
-  - briefly explain the challenge
-  - how to connect to the board and set it up
-  - buttons and controls available
-  
-  <summary>PTU lidar</summary>
-  
-  ### PTU module
-  - briefly explain the challenge
-  - how to connect to the board and set it up
-  - buttons and controls available
+### Summary
+This module enables interfacing with the Pan-Tilt Unit through UART. It controls:
+- 2 servos (pan, tilt)
+- 1 LIDAR-Lite v3 distance sensor
+- 3-axis gyroscope (L3G4200D)
+- 3-axis accelerometer (ADXL345)
+- 3-axis magnetometer (HMC5883L)
+
+This is the main interface for Challenge 1 where users must orient servos to take accurate distance measurements.
+
+---
+
+### Sub-modules
+
+#### Servo Drivers
+**File**: `ptu_servo.h`
+
+##### Usage
+- `HAL_StatusTypeDef initialise_ptu_pwm(TIM_HandleTypeDef *htim1, TIM_HandleTypeDef *htim2)`  
+  Initializes timers 1 & 2 for the two servos.
+
+- `void setServoPWM(uint16_t vertical_PWM, uint16_t horizontal_PWM)`  
+  Sets pan and tilt servo PWM values.
+
+- `void servo_command_parser(SerialPort *serial_port)`  
+  Debugging parser (no serialization) to directly set PWM via serial.
+
+##### Functionalities and Features
+- Servo changes are triggered by serial interrupts from the GUI.
+- Both servos can be controlled simultaneously, but the GUI allows one at a time.
+
+##### Testing
+- Print statements on GUI confirm servo positioning.
+- Command parser allows standalone testing (bypassing serialization).
+- PWM values are clamped to slider bounds.
+
+---
+
+#### LIDAR
+**File**: `ptu_lidar.h`
+
+##### Usage
+- `void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)`  
+  Timer callback for PWM input (auto-triggered; do not call manually).
+
+- `uint16_t last_period`  
+  Stores the most recent measured distance in mm.
+
+##### Functionalities and Features
+- Distance is updated via interrupt on each pulse from LIDAR.
+- Includes median filtering for noise reduction.
+- Max reading capped at 4000 mm (4 meters).
+
+##### Testing
+- Test using objects at known distances (e.g. ruler).
+- Validate units (mm) and output via GUI.
+- Confirm proper serialisation to GUI.
+
+---
+
+#### Gyroscope and Accelerometer
+**File**: `ptu_i2c.h`
+
+##### Usage
+- `void initialise_ptu_i2c(I2C_HandleTypeDef *i2c)`  
+  Initializes I2C interface for sensors.
+
+- `void read_gyro_data(I2C_HandleTypeDef *i2c, int16_t *yaw, int16_t *pitch, int16_t *roll)`  
+  Reads gyroscope data.
+
+- `void read_accel_data(I2C_HandleTypeDef *i2c, int16_t *acc_x, int16_t *acc_y, int16_t *acc_z)`  
+  Reads accelerometer data.
+
+##### Notes
+- Currently unused, but intended for future Kalman filtering to estimate tilt.
+- Will replace GUI dials with real-world orientation estimates.
+
+##### Testing
+- Output raw data via serial for verification.
+- Connect to GUI and confirm readable, filtered data.
+- Filter test: output should be ~0 if signal frequency < half window size.
+
+---
+
+#### Helper Modules
+
+**`filters.h`**
+- `void initFilters(Filter *filters, uint16_t init_value)`  
+  Initializes sliding window filters.
+
+- `uint16_t getMedian(Filter* filter, uint16_t new_value)`  
+  Computes median-filtered output.
+
+- `uint16_t getMovingAverage(Filter* filter, uint16_t new_value)`  
+  Computes moving average output.
+
+**`ptu_definitions.h`**
+- Contains all sensor register mappings and I2C constants.
+
+**`serial.h and serialisation.h`**
+- Packs all sensor data and sends it to the GUI.
+- Uses sentinel bytes and headers for reliable parsing.
 
 </details>
+
 
 <details>
   <summary>Flex pot sensor</summary>
