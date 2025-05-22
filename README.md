@@ -362,15 +362,95 @@ This is the main interface for Challenge 1 where users must orient servos to tak
   - buttons and controls available
   
 </details>
-
 <details>
   <summary>LDR</summary>
-  
-  ### PTU module
-  - briefly explain the challenge
-  - how to connect to the board and set it up
-  - buttons and controls available
-  
+
+### Summary
+This module uses an LDR (Light Dependent Resistor) for two purposes:
+1. **Light Detection**  
+   - Measures ambient brightness.
+   - Compares against a preset threshold to trigger logic changes.
+
+2. **Colour Detection**  
+   - Detects the amount of reflected light when red, green, and blue LEDs are sequentially illuminated.
+   - Determines the dominant reflected wavelength to identify the surface colour.
+
+---
+
+### Sub-modules
+
+#### Colour Detection State Machine  
+**File**: `colour_detector.h`
+
+##### Description
+A state machine implemented via `switch-case` inside a timer callback:
+- **States**:  
+  `INIT → RED_ON → READ_RED → GREEN_ON → READ_GREEN → BLUE_ON → READ_BLUE → DETECT_COLOUR`
+
+- **Calibration**:  
+  On first run (`calibrate = 0`), records initial ambient brightness to normalize readings.
+
+- **Debugging**:  
+  When colour is detected, an optional final state transmits a string over serial for monitoring.
+
+##### Usage
+- Timer interrupt calls the `handleStateMachine()` function at a fixed interval.
+- LED GPIOs are toggled within each state to control colour sequencing.
+
+---
+
+#### ADC Functions  
+**File**: `adc.c`
+
+##### Core Functions
+- `void initialiseSingleADC()`  
+  Manually configures ADC1 to single-shot mode.
+
+- `uint16_t singleReadADC()`  
+  Performs a one-time read of the ADC value, used in the colour detection state machine.
+
+##### Optional Utilities
+- `void continuousReadSingleChannelADC()`  
+  Continuously polls a single ADC channel in a blocking loop using the `ISR` register.
+
+- `void SingleReadMultiChannelADC()`  
+  Reads multiple channels on the same ADC (currently unused in this module but available for expansion).
+
+---
+
+### Functionalities and Features
+- Ambient light detection with threshold-triggered variable setting.
+- RGB LED-controlled surface reflection sensing to classify colours.
+- Compact state machine for cyclic LED control and ADC reading.
+- Lightweight implementation using timer-driven ADC sampling.
+
+---
+
+### Usage
+
+```c
+int main(void) {
+    enableGPIODLEDS();
+    enableGPIOClocks();
+
+    serialInitialise(BAUD_115200, &USART1_PORT, 0x00);
+
+    initialiseSingleADC();
+
+    // Start colour detection state machine on timer callback
+    setTIM2Callback(&handleStateMachine);
+    init_TIM2(50); // Timer interval set to 50ms
+}
+```
+
+---
+
+### Testing
+- Use serial output to confirm detection states and transitions.
+- Calibrate under various lighting conditions to test ambient compensation.
+- Use known-colour surfaces and compare detection accuracy.
+- Evaluate ADC signal stability under continuous and single-shot reads.
+
 </details>
 
 <details>
