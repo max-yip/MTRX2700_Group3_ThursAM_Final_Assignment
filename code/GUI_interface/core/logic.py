@@ -1,12 +1,17 @@
 import random
 
-def generate_chat_response(user_input: str) -> str:
-    hints = [
-        "Use the sliders to rotate the distance measurement device!\nStop when both the distance and the arrow are green meow!",
-        "Once you are on the planet, try applying pressure on different area of the slider meow!"
+hints = [
+        "Once you've landed on the planet, try applying pressure on different area of the slider meow!",
+        "Watch out for asteroids meow!",
+        "Use the sliders to rotate the distance measurement device meow!"
     ]
+
+def generate_chat_response(user_input: str) -> str:
     if user_input.lower() == "hint":
-        return hints[random.randint(0,1)]
+        if hints:
+            return hints.pop()
+        else:
+            return "No more hints available meow!"
     else:
         return "Meow" + " meow" * random.randint(0, 4) + "."
 

@@ -31,11 +31,15 @@ def create_center_panel(send_servo_command, parent):
         dial_layout.addWidget(dial)
 
     sliders = [QSlider(Qt.Orientation.Horizontal) for _ in range(2)]
-    for slider in sliders:
-        slider.setRange(1200, 1900)
-        slider.setValue(1551)
-        slider.setSingleStep(6)
-        slider.valueChanged.connect(send_servo_command)
+    sliders[0].setRange(1200, 1900)
+    sliders[0].setValue(1551)
+    sliders[0].setSingleStep(6)
+    sliders[0].valueChanged.connect(send_servo_command)
+
+    sliders[1].setRange(1500, 2300)
+    sliders[1].setValue(1551)
+    sliders[1].setSingleStep(6)
+    sliders[1].valueChanged.connect(send_servo_command)
 
     buttons_layout = QHBoxLayout()
     # Add "Next Planets" button

@@ -2,7 +2,7 @@
  * colour_detector.c
  *
  *  Created on: May 20, 2025
- *      Author: maxyi
+ *      Author: maxyip
  */
 
 
@@ -119,4 +119,4 @@ void handleStateMachine(void) {
 }
 
 
-
+// callback function when button is pressed

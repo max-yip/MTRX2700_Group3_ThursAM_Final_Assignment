@@ -24,6 +24,7 @@
 #include "adc.h"
 #include "serial.h"
 #include "colour_detector.h"
+#include "led_sequence.h"
 
 #if !defined(__SOFT_FP__) && defined(__ARM_FP)
   #warning "FPU is not initialized, but the project is compiling for an FPU. Please initialize the FPU before use."
@@ -31,22 +32,16 @@
 
 
 
-
-
-
 int main(void)
 {
-	enableGPIOClocks();
-	enableGPIODLEDS();
+	init_GPIO_ALL(&setLEDs);
 	serialInitialise(BAUD_115200, &USART1_PORT, 0x00); // remember to change baud rate multiplication if merge to puzzle 1
 	initialiseSingleADC();
-
-	//start state machine with a timer callback function
+////
+////	//start state machine with a timer callback function
 	setTIM2Callback(&handleStateMachine);
-	init_TIM2(50); // set timer duration as 50ms
-
-
-	// PINS
+	init_TIM2(40); // set timer duration as 40ms
+////	// PINS
 	// PD1 to RED
 	// PD2 to GREEN
 	// PD3 to BLUE

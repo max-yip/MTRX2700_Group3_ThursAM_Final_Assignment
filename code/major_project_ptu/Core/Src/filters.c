@@ -24,7 +24,9 @@
 
 //use WINDOWLEN = 5
 
-void initFilters(MedianFilter *filters, uint16_t init_value) {
+
+// --------- FILTER INITIALISATION -------
+void initFilters(Filter *filters, uint16_t init_value) {
     for (int i = 0; i < NUM_DATA; i++) {
         for (int j = 0; j < WINDOWLEN; j++) {
             filters[i].window[j] = init_value;
@@ -33,8 +35,10 @@ void initFilters(MedianFilter *filters, uint16_t init_value) {
     }
 }
 
+
+// ------ HELPER FUNCTIONS --------
 // current index, length of the array, array
-void slidingWindow(MedianFilter* filter, uint16_t new_value){
+void slidingWindow(Filter* filter, uint16_t new_value){
 	// insert value in sliding window
 	filter->window[filter->idx] = new_value;
 	// if current index is length-1, reset current index to 0, else current index ++
@@ -53,8 +57,9 @@ void insertionSort(uint16_t* arr, uint8_t n){
     }
 }
 
-//median filter
-uint16_t getMedian(MedianFilter* filter, uint16_t new_value){
+
+// ------- MEDIAN FILTER ----------
+uint16_t getMedian(Filter* filter, uint16_t new_value){
 	slidingWindow(filter, new_value);
 
 	//temporary buffer for sorting
@@ -66,8 +71,9 @@ uint16_t getMedian(MedianFilter* filter, uint16_t new_value){
 	return temp[WINDOWLEN/2]; // middle
 }
 
-// moving average filter
-uint16_t getMovingAverage(MedianFilter* filter, uint16_t new_value){
+
+// --------- MOVING AVERAGE FILTER -------
+uint16_t getMovingAverage(Filter* filter, uint16_t new_value){
 	slidingWindow(filter, new_value);
 
 	uint16_t sum = 0;

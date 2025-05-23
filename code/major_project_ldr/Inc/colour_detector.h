@@ -39,15 +39,5 @@ extern ColourType detectedColour;
 
 void handleStateMachine(void);
 
-//void calibrateADC (uint16_t *red, uint16_t *green, uint16_t *blue);
-//
-//void readColourADC(uint16_t *red, uint16_t *green, uint16_t *blue);
-//
-//const uint8_t* determineColour(uint16_t red_init, uint16_t green_init, uint16_t blue_init,
-//                         uint16_t red_adc, uint16_t green_adc, uint16_t blue_adc);
-//
-//void transmitColourData(const char *colour, uint16_t red, uint16_t green, uint16_t blue, SerialPort *serial_port);
-
-
 
 #endif /* COLOUR_DETECTOR_H_ */

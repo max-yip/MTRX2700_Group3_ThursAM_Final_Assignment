@@ -78,15 +78,6 @@ static void MX_TIM1_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-//typedef union {
-//	uint8_t all_leds;
-//	struct {
-//		uint8_t led_pair_1 : 2;
-//		uint8_t led_pair_2 : 2;
-//		uint8_t led_set_of_4 : 4;
-//	} led_groups;
-//} LedRegister;
-
 
 /* USER CODE END 0 */
 
@@ -157,7 +148,7 @@ int main(void)
   	setServoPWM(vertical_PWM, horizontal_PWM);
 
   	//initialise median filter
-  	MedianFilter dataFilters[NUM_DATA];
+  	Filter dataFilters[NUM_DATA];
   	initFilters(dataFilters, 0);
 
 

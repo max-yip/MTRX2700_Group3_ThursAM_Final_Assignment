@@ -24,7 +24,7 @@ class SpaceControlPanel(QWidget):
         self.planet_data_storage = {0:[0,1551,''], 1:[0,1551,''], 2:[0,1551,'']}  
         # Store data for each planet index:[lidar_distance, dial_value, dial color]
         
-        self.planet_target = {0:[[350,450],[1545,1565]], 1:[[350, 450],[1545,1565]], 2:[[350,450],[1545,1565]]}
+        self.planet_target = {0:[[540,650],[1300,1330]], 1:[[340, 490],[1560,1660]], 2:[[580,620],[1830,1850]]}
         # Store target ranges for each planet index:[[lidar_range],[slider_range]]
 
         self.initUI()
@@ -99,7 +99,7 @@ class SpaceControlPanel(QWidget):
     def send_servo_command(self):
         pwm1, pwm2 = self.sliders[1].value(), self.sliders[0].value()
         msg = f"{pwm1},{pwm2}\n"
-        # print(msg)
+        print(msg) # Debugging line
         self.serial_reader.serial_port.write(msg.encode())
         # data = struct.pack('<HH', pwm1, pwm2)
         # buffer = pack_buffer(MessageType.SERVO_PWM.value, data)
@@ -111,13 +111,13 @@ class SpaceControlPanel(QWidget):
         #     print("Serial port not open!")
 
     def process_chat_input(self):
-        from core.logic import generate_chat_response
+        from core import logic
         user_input = self.chat_input.text().strip()
         if not user_input:
             return
         self.chat_display.append(f"You: {user_input}")
         self.chat_input.clear()
-        response = generate_chat_response(user_input)
+        response = logic.generate_chat_response(user_input)
         self.chat_display.append(f"Cat: {response}")
     
 
@@ -129,7 +129,7 @@ class SpaceControlPanel(QWidget):
     def show_startup_popup(self):
         msg = QMessageBox()
         msg.setWindowTitle("Welcome")
-        msg.setText("Summary of the game and what you need to do")
+        msg.setText("Welcome Padawan.\n\nYour ship have been drifting in space for a while.\n\nFind the hidden planet of Ilum before your fuel runs out.\n\nIf you need help, try asking the cat.")
         msg.setIcon(QMessageBox.Icon.Information)
         msg.setStandardButtons(QMessageBox.StandardButton.Ok)
         msg.buttonClicked.connect(self.on_popup_closed)
@@ -204,7 +204,7 @@ class SpaceControlPanel(QWidget):
             # create a popup message saying that the coordinates are correct
             msg = QMessageBox()
             msg.setWindowTitle("Coordinates Check")
-            msg.setText("Coordinates of the hidden planet has successfully been calculated! Travelling to the next planet...")
+            msg.setText("Coordinates of the hidden planet has successfully been calculated!\n\nTravelling...\n\nWARNING: Watch out for asteroids!")
             msg.setIcon(QMessageBox.Icon.Information)
             msg.setStandardButtons(QMessageBox.StandardButton.Ok)
             msg.buttonClicked.connect(self.on_popup_closed)
@@ -225,7 +225,7 @@ class SpaceControlPanel(QWidget):
             if self.fuel == 0:
                 msg = QMessageBox()
                 msg.setWindowTitle("Coordinates Check")
-                msg.setText("Calculations are incorrect! You have run out of fuel!")
+                msg.setText("MISSION FAILED\n\nYou have run out of fuel!")
                 msg.setIcon(QMessageBox.Icon.Warning)
                 msg.setStandardButtons(QMessageBox.StandardButton.Ok)
                 msg.buttonClicked.connect(self.on_popup_closed)

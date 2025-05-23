@@ -28,17 +28,13 @@
 typedef struct{
 	uint16_t window[WINDOWLEN];
 	uint8_t idx;
-}MedianFilter;
+}Filter;
 
 
-void initFilters(MedianFilter *filters, uint16_t init_value);
+void initFilters(Filter *filters, uint16_t init_value);
 
-void slidingWindow(MedianFilter* filter, uint16_t new_value);
+uint16_t getMedian(Filter* filter, uint16_t new_value);
 
-void insertionSort(uint16_t* arr, uint8_t n);
-
-uint16_t getMedian(MedianFilter* filter, uint16_t new_value);
-
-uint16_t getMovingAverage(MedianFilter* filter, uint16_t new_value);
+uint16_t getMovingAverage(Filter* filter, uint16_t new_value);
 
 #endif /* INC_FILTERS_H_ */

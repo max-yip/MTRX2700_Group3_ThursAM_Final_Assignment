@@ -79,7 +79,7 @@ void servo_command_parser(SerialPort *serial_port) {
         int pwm1 = atoi(pan);
         int pwm2 = atoi(tilt);
 
-        if (pwm1 >= 1200 && pwm1 <= 1900 && pwm2 >= 1200 && pwm2 <= 1900) {
+        if (pwm1 >= 1500 && pwm1 <= 2300 && pwm2 >= 1200 && pwm2 <= 1900) {
             TIM2->CCR1 = pwm1;
             TIM2->CCR2 = pwm2;
         }
