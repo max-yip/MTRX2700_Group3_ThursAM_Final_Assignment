@@ -50,6 +50,14 @@ Shuvayu Banerjee <br>
   <summary>Challenge 2</summary>
   
   ### Asteroid Shooting
+  After locating the planet the player experiences an astroid field right before entering the planets atmosphere where 8 astroids must be sucessfully hit to make it to the planets surface.
+
+  ### How it works
+  1. The user will aim a laser beam and flick towards the astroid
+  2. The IR beam breaker sensor will be placed on either side of the lasers path and will detect the object passing through
+  3. Each time this occure one of the eight LEDs on the STM discovery board will light up untill all 8 astroids are destroyed
+
+
   
 </details>
 <details>
