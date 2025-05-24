@@ -64,6 +64,21 @@ Shuvayu Banerjee <br>
   <summary>Challenge 3</summary>
   
   ### Map Coordinates with Flexible Potentiometer
+  After the user makes it to the surface of the planet they must now determine the correct coordinates of the crystal 
+
+  ### How it works
+  1. On a locating device there are two flexible potentiometers, one represents the x-ccordinate and the other represents the y-coordinates
+  2. By applying pressure on different spots along the potentiometer will generate different values
+  3. The interface will tell the user if they are closer or further from the true coordinates compared with their previous attempt
+  4. After landing on the correct coordinates the display will tell the user to go to those coordinates on the grid
+  5. A servo is intigrated with the determination of the correct coordinates, which when achieved will rotate 90 degrees to open the lid of the correct grid space
+  6. An LDR inside this gridspace will detect the light and display a message on a LCD to retreive the crytal and place it in the hilt of the lightsaber
+
+  ### Sersors + Actuators used
+  1. 2x Flexible potentiometers
+  2. Directional servo motor
+  3. Light detecting resistor (LDR)
+  4. Liquid-crystal Display (LCD)
   
 </details>
 
