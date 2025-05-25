@@ -49,7 +49,7 @@ Shuvayu Banerjee <br>
 <details>
   <summary>Challenge 2</summary>
   
-  ### Asteroid Shooting
+  ### Asteroid Attack
   After locating the planet the player experiences an astroid field right before entering the planets atmosphere where 8 astroids must be sucessfully hit to make it to the planets surface.
 
   ### How it works
