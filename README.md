@@ -509,9 +509,8 @@ Sends a raw data byte (ASCII character) to be displayed.
 All functions are isolated and well-documented in `lcd.c` and `lcd.h`. The module does not depend on other parts of the project and uses only HAL GPIO functions.
 
   ### Testing 
-1. Confirm the LCD initializes and displays static text using lcd_print().
-2. Test cursor positioning using lcd_set_cursor(row, col).
-
+1. Confirm the LCD initializes and displays static text using `lcd_print()`.
+2. Test cursor positioning using `lcd_set_cursor(row, col)`.
 3. Clear the display and update with new values dynamically.
 
 #### Debug Tips
