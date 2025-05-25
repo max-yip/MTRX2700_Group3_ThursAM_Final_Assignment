@@ -331,18 +331,55 @@ To test the core codes integration with the main file for the puzzle design prin
 ### IR Beam Breaker Sensor (beam.c)
   
 ### Summary
-This module configures PC1 as an EXTI1 (falling‐edge) interrupt input to detect when an IR beam is broken. Each beam break increments a counter (up to 8) and lights the corresponding Discovery-board LED (PE8…PE15). A simple API lets you query or reset the count (and LEDs).
+This module configures PC1 as an EXTI1 (falling‐edge) interrupt input to detect when an IR beam is broken. Each beam break increments a counter (`beam_count`, up to 8) and lights the corresponding Discovery-board LED (PE8…PE15). A simple API lets you query or reset the count (and LEDs).
 ### Usage
-At the start of the file ‘Beam_Init();’ is called to enable GPIOC/E clocks, configure PC1 for falling‐edge EXTI, and enable the EXTI1 interrupt. On every beam break the HAL ISR callback will increment beam_count and set the next LED. In the application for the puzzle design ‘uint8_t n = Beam_GetCount();’ is used to read how many breaks have occurred and displays this on the LEDs on the STM board.
+1. Initialization
+At the start of your program, call `Beam_Init();`
+This:
+- Enables GPIOC and GPIOE clocks
+- Configures PC1 as an EXTI1 input with falling-edge interrupt
+- Enables EXTI1 interrupt in NVIC
+- Sets up PE8–PE15 as outputs for LED indication
+
+2. Reading the Count
+In your application code, use:
+`uint8_t n = Beam_GetCount();`
+This returns the number of beam breaks detected so far (max 8).
+
+2. Resetting the Count and LEDs
+To reset the counter and turn off LEDs:
+`Beam_ResetCount();`
+
 ### Valid Input
-The user must pass an object through the sensor which increments ‘beam_count’ only on a falling edge of PC1 (beam broken) and saturates at 8. Also, if there are no inputs the player will lose the game.
+- An object must break the IR beam, pulling PC1 low and triggering a falling edge.
+- Only transitions from high to low increment `beam_count` (debounced via hardware or design).
+- The counter saturates at 8; additional breaks do not increase the count or light further LEDs.
+- No input (i.e., beam never broken) is treated as a failure condition in the game.
+
+
 ### Functions and Modularity
-First, the module ‘void Beam_Init(void)’ enables the GPIOC clock and configures PC1 as EXTI1 falling‐edge. The module also enables the GPIOE clock (for LEDs) and assumes PE8 to PE15 are outputs for each time the beam is interfered by an object.
-The function ‘uint8_t Beam_GetCount(void)’ is used to returns the current beam_count. ‘void Beam_ResetCount(void)’ then clears beam_count and turns turns off the LEDs on the STM discovery board.
-The module ‘void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)’ is called by HAL on any EXTI line and when GPIO_Pin == IR_PIN and the pin reads LOW, increments beam_count if they are not all on already and lights the next LED.
+- `void Beam_Init(void)`
+Initializes GPIOC and GPIOE. Configures PC1 for EXTI1 (falling edge) and sets PE8–PE15 as LED outputs.
+- `uint8_t Beam_GetCount(void)`
+Returns the current value of beam_count.
+- `void Beam_ResetCount(void)`
+Resets beam_count to 0 and turns off all LEDs.
+- `void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)`
+Called automatically by HAL on EXTI interrupts. If the pin is PC1 and it reads low:
+  - Increments `beam_count` (if < 8)
+  - Lights the corresponding LED (PE8 + count index)
+
+
 ### Testing
 To test the boundary conditions the beam breaks more than eight times which should result in no further LEDs lighting up or overflow to occur.
 To test integration the main file code with the flex-pot code is tested to ensure the two modules operate without interfering (e.g. ADC vs EXTI).
+1. Boundary Test:
+Trigger the beam more than 8 times. The count should stop incrementing and no extra LEDs should light.
+
+2. Integration Test:
+Run the beam module alongside other sensor modules (e.g., Flex Potentiometer using ADC). Verify:
+- EXTI and ADC operate independently.
+- No conflicts or race conditions between modules.
 
 
 
