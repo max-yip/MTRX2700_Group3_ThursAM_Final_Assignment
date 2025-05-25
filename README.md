@@ -392,22 +392,22 @@ lcd_print("Hello, STM32!");`
 
   ### Functions 
 
-  `void lcd_init(void)`
+- `void lcd_init(void)`
 Initializes the LCD in 4-bit mode.
 
-`void lcd_clear(void)`
+- `void lcd_clear(void)`
 Clears the LCD display.
 
-`void lcd_set_cursor(uint8_t row, uint8_t col)`
+- `void lcd_set_cursor(uint8_t row, uint8_t col)`
 Sets the cursor to the specified row and column.
 
-`void lcd_print(char *str)`
+- `void lcd_print(char *str)`
 Prints a null-terminated string to the LCD.
 
-`void lcd_cmd(uint8_t cmd)`
+- `void lcd_cmd(uint8_t cmd)`
 Sends a raw command byte directly to the LCD controller.
 
-`void lcd_data(uint8_t data)`
+- `void lcd_data(uint8_t data)`
 Sends a raw data byte (ASCII character) to be displayed.
 
 
@@ -428,14 +428,6 @@ All functions are isolated and well-documented in `lcd.c` and `lcd.h`. The modul
 3. Use an oscilloscope or logic analyzer to confirm Enable (EN) pulse timing if LCD does not respond.
 
 
-
-  ### Notes
-
-
-  - briefly explain the challenge
-  - how to connect to the board and set it up
-  - buttons and controls available
-  
 </details>
 <details>
   <summary>LDR</summary>
