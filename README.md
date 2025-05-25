@@ -473,7 +473,7 @@ In main.c or any relevant source file:
 Initialize LCD in your main function
 `lcd_init();
 lcd_clear();
-lcd_print("Hello, STM32!");`
+lcd_print("Place cystal on handle!");`
 
 
   ### Valid Input
