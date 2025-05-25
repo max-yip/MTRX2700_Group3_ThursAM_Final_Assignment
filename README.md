@@ -318,16 +318,16 @@ Call:
 `FlexPot_Init();`
 
 This:
-- Enables clocks for GPIOC and ADC1
-- Configures PC0 and PC2 in analog mode
-- Calibrates and enables ADC1
+  - Enables clocks for GPIOC and ADC1
+  - Configures PC0 and PC2 in analog mode
+  - Calibrates and enables ADC1
 
 2. Reading a Position
 To read from a specific potentiometer channel:
 `uint8_t pos = FlexPot_GetPosition(channel);`
 Where:
-- `channel` is `6` for PC0 or `8` for PC2
-- Return value pos is:
+  - `channel` is `6` for PC0 or `8` for PC2
+  - Return value pos is:
     - `0` if no touch (`raw < 100`)
     - `1–6` depending on pressure/location along the strip
 
