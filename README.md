@@ -391,10 +391,10 @@ This module configures PC1 as an EXTI1 (falling‐edge) interrupt input to detec
 1. Initialization
 At the start of your program, call `Beam_Init();`
 This:
-- Enables GPIOC and GPIOE clocks
-- Configures PC1 as an EXTI1 input with falling-edge interrupt
-- Enables EXTI1 interrupt in NVIC
-- Sets up PE8–PE15 as outputs for LED indication
+  - Enables GPIOC and GPIOE clocks
+  - Configures PC1 as an EXTI1 input with falling-edge interrupt
+  - Enables EXTI1 interrupt in NVIC
+  - Sets up PE8–PE15 as outputs for LED indication
 
 2. Reading the Count
 In your application code, use:
