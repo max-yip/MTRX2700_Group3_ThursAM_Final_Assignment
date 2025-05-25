@@ -467,9 +467,12 @@ In main.c or any relevant source file:
 
 #### 2. Include the module
 Initialize LCD in your main function
-`HD44780_Init(2);                  // 2-line LCD
+```
+HD44780_Init(2);                  // 2-line LCD
 HD44780_Clear();
-HD44780_PrintStr("Place crystal on handle!");`
+HD44780_PrintStr("Place crystal on handle!");
+```
+
 
 
   ### Valid Input
