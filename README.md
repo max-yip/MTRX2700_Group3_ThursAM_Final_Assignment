@@ -460,20 +460,16 @@ The module is designed for portability and ease of integration with STM32CubeMX-
 
   ### Usage
 
-#### 1. Initialize GPIO in STM32CubeMX
+#### 1. Include the module
+In main.c or any relevant source file:
+`#include "i2c.h"`
 
-Enable GPIOD and configure PD8–PD14 as output push-pull with no pull-up/pull-down.
 
 #### 2. Include the module
-In main.c or any relevant source file:
-`#include "lcd.h"`
-
-
-#### 3. Include the module
 Initialize LCD in your main function
-`lcd_init();
-lcd_clear();
-lcd_print("Place cystal on handle!");`
+`HD44780_Init(2);                  // 2-line LCD
+HD44780_Clear();
+HD44780_PrintStr("Place crystal on handle!");`
 
 
   ### Valid Input
@@ -484,39 +480,68 @@ lcd_print("Place cystal on handle!");`
 
   ### Functions 
 
-- `void lcd_init(void)`
+- `void void HD44780_Init(uint8_t rows)`
 Initializes the LCD in 4-bit mode.
 
-- `void lcd_clear(void)`
+- `void HD44780_Clear(void)`
 Clears the LCD display.
 
-- `void lcd_set_cursor(uint8_t row, uint8_t col)`
-Sets the cursor to the specified row and column.
+- `void HD44780_Init(uint8_t rows)`
+Initializes the LCD in 4-bit mode with the specified number of rows.
 
-- `void lcd_print(char *str)`
-Prints a null-terminated string to the LCD.
+- `void HD44780_Clear(void)`
+Clears the display.
 
-- `void lcd_cmd(uint8_t cmd)`
-Sends a raw command byte directly to the LCD controller.
+- `void HD44780_SetCursor(uint8_t col, uint8_t row)`
+Sets the cursor to the given column and row.
 
-- `void lcd_data(uint8_t data)`
-Sends a raw data byte (ASCII character) to be displayed.
+- `void HD44780_PrintStr(const char str[])`
+Prints a null-terminated string.
 
+- `void HD44780_Cursor(void)`
+Shows the cursor.
 
+- `void HD44780_NoCursor(void)`
+Hides the cursor.
 
+- `void HD44780_Blink(void)`
+Enables blinking cursor.
+
+- `void HD44780_NoBlink(void)`
+Disables blinking cursor.
+
+- `void HD44780_Backlight(void)`
+Turns on the backlight.
+
+- `void HD44780_NoBacklight(void)`
+Turns off the backlight.
+
+- `void HD44780_CreateSpecialChar(uint8_t index, uint8_t data[])`
+Loads a custom character (up to 8).
+
+- `void HD44780_PrintSpecialChar(uint8_t index)`
+Prints a previously created special character.
+
+- `void HD44780_ScrollDisplayLeft(void) / HD44780_ScrollDisplayRight(void)`
+Scrolls display left/right.
 
   ### Modularity
-All functions are isolated and well-documented in `lcd.c` and `lcd.h`. The module does not depend on other parts of the project and uses only HAL GPIO functions.
+All functions are encapsulated in `i2c.c` and `i2c.h`. The module relies solely on HAL I2C and minimal MCU core resources (DWT for delay). It can be easily reused across STM32 projects with similar hardware configuration.
+
 
   ### Testing 
-1. Confirm the LCD initializes and displays static text using `lcd_print()`.
-2. Test cursor positioning using `lcd_set_cursor(row, col)`.
-3. Clear the display and update with new values dynamically.
+1. Confirm LCD initializes and displays static text using `HD44780_PrintStr()`.
+2. Test cursor positioning with `HD44780_SetCursor(row, col)`.
+3. Test scrolling and blinking using display control functions.
+4. Load and print custom characters with `HD44780_CreateSpecialChar()` and `HD44780_PrintSpecialChar()`.
+
 
 #### Debug Tips
-1. Check contrast voltage on V0 (usually via potentiometer).
-2. Ensure RW is grounded for write-only mode or correctly toggled.
-3. Use an oscilloscope or logic analyzer to confirm Enable (EN) pulse timing if LCD does not respond.
+1. Ensure correct I2C address (0x27 << 1 for PCF8574).
+2. Check LCD contrast by adjusting the potentiometer on V0.
+3. If LCD remains blank:
+     - Verify I2C connection (SCL, SDA continuity).Confirm LCD receives enable pulse (use oscilloscope).
+     - Check backlight and 5V power supply.
 
 
 </details>
