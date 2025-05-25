@@ -352,7 +352,86 @@ To test integration the main file code with the flex-pot code is tested to ensur
 <details>
   <summary>LCD display</summary>
   
-  ### PTU module
+  ### Summary
+  
+  This module provides an interface for controlling a 16x2 HD44780-compatible LCD over I2C using STM32 HAL libraries. It uses an I2C I/O expander (e.g., PCF8574) to communicate with the LCD in 4-bit mode. This reduces GPIO usage and simplifies wiring, ideal for STM32CubeMX-based projects.
+
+The module allows for easy initialization, cursor control, string display, and command-level manipulation. 
+
+The LCD is connected to GPIO port D using the following pin mapping:
+- GND --> GND
+- VDD --> 5V
+- SCL --PA6
+- SDA --> PA7
+
+The module is designed for portability and ease of integration with STM32CubeMX-based projects.
+
+  ### Usage
+
+#### 1. Initialize GPIO in STM32CubeMX
+
+Enable GPIOD and configure PD8–PD14 as output push-pull with no pull-up/pull-down.
+
+#### 2. Include the module
+In main.c or any relevant source file:
+`#include "lcd.h"`
+
+
+#### 3. Include the module
+Initialize LCD in your main function
+`lcd_init();
+lcd_clear();
+lcd_print("Hello, STM32!");`
+
+
+  ### Valid Input
+1. Rows: 0 or 1
+2. Columns: 0 to 15
+3. Characters: Standard ASCII text (the LCD does not support Unicode)
+4. Strings: Null-terminated (char *), max 16 characters per line (extra characters wrap if not managed)
+
+  ### Functions 
+
+  `void lcd_init(void)`
+Initializes the LCD in 4-bit mode.
+
+`void lcd_clear(void)`
+Clears the LCD display.
+
+`void lcd_set_cursor(uint8_t row, uint8_t col)`
+Sets the cursor to the specified row and column.
+
+`void lcd_print(char *str)`
+Prints a null-terminated string to the LCD.
+
+`void lcd_cmd(uint8_t cmd)`
+Sends a raw command byte directly to the LCD controller.
+
+`void lcd_data(uint8_t data)`
+Sends a raw data byte (ASCII character) to be displayed.
+
+
+
+
+  ### Modularity
+All functions are isolated and well-documented in `lcd.c` and `lcd.h`. The module does not depend on other parts of the project and uses only HAL GPIO functions.
+
+  ### Testing 
+1. Confirm the LCD initializes and displays static text using lcd_print().
+2. Test cursor positioning using lcd_set_cursor(row, col).
+
+3. Clear the display and update with new values dynamically.
+
+#### Debug Tips
+1. Check contrast voltage on V0 (usually via potentiometer).
+2. Ensure RW is grounded for write-only mode or correctly toggled.
+3. Use an oscilloscope or logic analyzer to confirm Enable (EN) pulse timing if LCD does not respond.
+
+
+
+  ### Notes
+
+
   - briefly explain the challenge
   - how to connect to the board and set it up
   - buttons and controls available
