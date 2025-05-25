@@ -57,7 +57,7 @@ Shuvayu Banerjee <br>
   2. The IR beam breaker sensor will be placed on either side of the lasers path and will detect the object passing through
   3. Each time this occure one of the eight LEDs on the STM discovery board will light up untill all 8 astroids are destroyed
 
-     ### Flowchart
+  ### Flowchart
 
 
 ![Puzzle2-Paul drawio](https://github.com/user-attachments/assets/7ae7bd23-1bf2-461a-beda-083f33714b6a)
@@ -85,7 +85,6 @@ Shuvayu Banerjee <br>
   3. Light detecting resistor (LDR)
   4. Liquid-crystal Display (LCD)
 
-  
   ### Flowchart
 
   ![Puzzle3-Paul drawio](https://github.com/user-attachments/assets/e20776da-87a5-43a6-8d5b-a12ad4e82a18)
