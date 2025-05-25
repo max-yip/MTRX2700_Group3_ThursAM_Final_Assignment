@@ -650,21 +650,177 @@ int main(void) {
   <summary>Servo Motor</summary>
 
   ### Summary
+This module allows control of a servo motor via PWM (TIM2 CH1) on the STM32F3DISCOVERY board. Pressing the blue user button (PA0) triggers an rising-edge EXTI0 interrupt that calls a callback function, rotating the servo to a fixed angle (90°). The PWM signal is continuously generated on PA15 (TIM2_CH1). All hardware logic is modularised into a clean `servo.c` and `servo.h` interface.
 
 
   ### Usage
+This section explains how to use the digital button (PA0) for controlling the servo motor. All functionality is interrupt-based, so no button polling or delay loops are needed.
 
+---
 
+#### 1.Include the Header:
+At the top of your `main.c` file, include the servo module:
+```c
+#include "servo.h"
+```
+2. Setup in main():
+Call these functions once in `main()` to initialize everything:
+
+```c
+enable_clocks();                      
+enableGPIOAButton();                   
+
+on_button_press = &rotate_servo_90;         
+
+enable_interrupt();                   
+```
+3. Main Loop:
+loop forever and there is nothing happening in the main while loop since everything is interrupt driven:
+```c
+while (1)
+  {
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+  }
+```
+4. What Happens:
+* When the system powers on, all required peripherals (GPIOs, I2C, SPI, USB, and TIM2) are initialized.
+* Timer 2 is started to generate a continuous PWM signal used to control a servo motor.
+* The blue user button (PA0) is configured to trigger an interrupt when pressed.
+* A call-back function is assigned to run automatically whenever the button is pressed.
+* Once the interrupt is enabled, the program enters an infinite loop — but nothing happens here because the logic is interrupt-driven.
+* When the user presses the button, the rising edge triggers an interrupt in the background.
+* This causes the assigned servo-control function to run, which updates the PWM signal’s duty cycle.
+* The updated PWM pulse tells the servo to rotate to a new position (90°).
+* No repeated button presses will move the servo again unless the PWM value is updated again.
+  
   ### Valid Input
+The module expects the following valid inputs and formats:
 
+* Button Press	- The user presses the on-board button (PA0), triggering the EXTI0 interrupt.
 
   ### Functions and Modularity
+The code is separated into a header (servo.h) and implementation (servo.c) to support clean modularity and easy reuse.
 
+**Functions:**
+
+#### `enable_clocks()`
+**Purpose:**  
+Turns on the clocks (power) to the GPIO ports A, C, and E.
+
+**When to call it:**  
+At the beginning of your `main()` function — before setting up pins or using any peripherals.
+
+---
+
+### `void enableGPIOAButton(void)`
+**Purpose**:  
+Configures PA0 (the user button) as a digital input.
+
+**How it Works**:  
+Clears the mode bits in `GPIOA->MODER` for pin 0, putting it in input mode.
+
+**When to Call**:  
+Call once during setup, after clocks are enabled and before enabling interrupts.
+
+---
+
+### `void enable_interrupt(void)`
+**Purpose**:  
+Sets up external interrupts on PA0 to detect button presses.
+
+**How it Works**:
+- Enables the SYSCFG peripheral.
+- Maps PA0 to EXTI0 (external interrupt line 0).
+- Configures EXTI0 to trigger on a rising edge (i.e., button press).
+- Enables EXTI0 in the NVIC (Nested Vectored Interrupt Controller).
+- Globally enables interrupts using `__enable_irq()`.
+
+**When to Call**:  
+Call after assigning `on_button_press` and after enabling clocks and GPIOA input. Only needs to be called once.
+
+---
+
+### `void (*on_button_press)()`
+**Purpose**:  
+A function pointer that stores the action to take when the button is pressed (e.g., rotate the servo).
+
+**How it Works**:  
+You assign this in `main()` like so:  
+```c
+on_button_press = &rotate_servo_90;
+```
+
+#### `EXTI0_IRQHandler(void)`
+**Purpose:**  
+This is the interrupt service routine (ISR) for button press.
+
+**What it does:**  
+* When PA0 is pressed, this runs automatically
+* It checks if on_button_press is set (not NULL)
+* If set → it runs that function (toggleLED())
+* Clears the EXTI0 interrupt flag
+
+
+**When it runs:**  
+Every time the user presses the button (rising edge on PA0).
+
+---
+
+### `rotate_servo_90(void)`
+
+**Purpose**  
+Moves the servo motor to the 90-degree position using PWM signals.
+
+**How it Works**  
+This function sets the compare values of TIM2’s channels (CCR1 and CCR2) to `1800`, which corresponds to a pulse width of approximately **1.5ms**. That’s the standard signal to tell most hobby servos to move to the **center or 90°** position.  
+
+The PWM timer (already running in the background) uses these values to continuously send the correct high pulse width to the servo.
+
+- `TIM2->CCR1 = 1800;`  
+- `TIM2->CCR2 = 1800;`  
+
+This assumes that the timer is configured for a **20ms period (50Hz)**, so:
+- ~1ms pulse → 0°
+- ~1.5ms pulse → 90°
+- ~2ms pulse → 180°
+
+**When to Call It**  
+- You assign this function to the `on_button_press` pointer in `main()`.
+- When the button is pressed, the EXTI0 interrupt fires and automatically calls this function.
+  
 
   ### Testing 
+This section shows how to test the servo code reliably, not just by observation but also using in-code checks.
 
+---
 
-  ### Notes
+#### Button Press Test
+
+**Goal:** Check that pressing the blue user button rotates the servo.
+
+**Steps:**
+1. Connect servo:
+   - Signal: PA15
+   - VCC: 5V
+   - GND: GND
+2. Flash the code and run the board.
+3. Press the user button.
+
+**Expected:** Servo rotates to the 90° position.
+
+---
+
+#### Debug with LED Toggle
+
+**Goal:** Confirm code execution using an LED.
+
+**How:**
+Add this to `rotate_servo_90()`:
+```c
+GPIOE->ODR ^= GPIO_ODR_9; // Toggle LED on each press
+```
 
 </details>
 
