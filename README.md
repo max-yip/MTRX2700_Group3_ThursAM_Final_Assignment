@@ -378,8 +378,8 @@ Trigger the beam more than 8 times. The count should stop incrementing and no ex
 
 2. Integration Test:
 Run the beam module alongside other sensor modules (e.g., Flex Potentiometer using ADC). Verify:
-  - EXTI and ADC operate independently.
-  - No conflicts or race conditions between modules.
+    - EXTI and ADC operate independently.
+    - No conflicts or race conditions between modules.
 
 
 
