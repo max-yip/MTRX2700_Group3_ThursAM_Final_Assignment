@@ -11,10 +11,10 @@ To design and implement proof-of-concept technology for a high-tech treasure hun
 microcontroller subsystems, sensors, and an actuator.
 
 ## Roles and Responsibilities
-Paul Akle <br>
-Max Yip <br>
-Siya Sharma <br>
-Shuvayu Banerjee <br>
+- **Paul Akle** – Puzzles 2 & 3 Integration, Break Beam Sensor, Servo, Flexible Potentiometer Modules  
+- **Max Yip** – Puzzle 1 & 4 Integration, PTU, PyQT GUI, LDR Color Detection, Sensor Data Filtering, Serialisation, CAD  
+- **Siya Sharma** – LCD Display and LDR Modules, Game and Challenges Design  
+- **Shuvayu Banerjee** – CAD, Servo, Materials Procurement 
 
 
 ## Project Overview
