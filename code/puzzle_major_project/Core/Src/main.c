@@ -17,7 +17,7 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
- #include "main.h"
+#include "main.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -26,6 +26,7 @@
 #include "beam.h"
 #include "flexpot.h"
 #include "servo.h"
+#include "puzzle3.h"
 #include "stm32f303xc.h"
 #include "stm32f3xx_hal.h"   // brings in UART_HandleTypeDef, HAL_Delay, etc.
 #include <stdio.h>          // for snprintf()
@@ -34,7 +35,7 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-#define NO_TOUCH_THRESHOLD   100U // def in flex
+#define NO_TOUCH_THRESHOLD   100U
 #define FLEXPOT_STEPS        6U   // we want positions 1..6
 /* USER CODE END PTD */
 
@@ -82,10 +83,10 @@ static void MX_ADC1_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-// enable the clocks for desired peripherals (GPIOA, C and E)
-//void enable_clocks() {
-//	RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIOEEN;
-//}
+//// enable the clocks for desired peripherals (GPIOA, C and E)
+void enable_clocks() {
+	RCC->AHBENR |= RCC_AHBENR_GPIOAEN | RCC_AHBENR_GPIOCEN | RCC_AHBENR_GPIOEEN;
+}
 
 
 // initialise the discovery board I/O (just outputs: inputs are selected by default)
@@ -113,15 +114,6 @@ uint16_t diff = 0;
 uint16_t rise_time = 0;
 uint16_t last_period = 0;
 
-
-
-
-/* very rough delay loop; adjust the constant for ~2 s on your clock */
-static void Delay2Sec(void) {
-    for (volatile uint32_t i = 0; i < 8000000; i++) {
-        __asm__("nop");
-    }
-}
 
 /* USER CODE END 0 */
 
@@ -161,9 +153,14 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
-  /* minimal runtime setup */
-  SystemInit();               // CMSIS core init (optional if done in startup)
+  /* init functions */
+  SystemInit();               // CMSIS core init
   SystemClock_Config();       // your RCC setup
+  enable_clocks();
+  initialise_board();
+  Servo_Init();
+  Beam_Init();
+
 
   /* peripherals init */
   FlexPot_Init();                          // ADC on PC0/PC2
@@ -171,25 +168,10 @@ int main(void)
                    &USART1_PORT,           // your SerialPort instance
                    NULL);                 // no callback needed
 
-  float prev_dist = 1e6f;  // start with a large “previous” distance
-  char  buf[64];
-
-
-	uint8_t string_to_send[64] = "This is a string !\r\n";
-
-	enable_clocks();
-	initialise_board();
-
-
-	LedRegister *led_register = ((uint8_t*)&(GPIOE->ODR)) + 1;
 
 	SerialInitialise(BAUD_115200, &USART1_PORT, 0x00);
 
-	HAL_StatusTypeDef return_value = 0x00;
 
-
-  // initialize PC1 beam-break sensor
-  Beam_Init();
 
 
   /* USER CODE END 2 */
@@ -199,39 +181,7 @@ int main(void)
   while (1)
   {
     /* USER CODE END WHILE */
-
-      Delay2Sec();
-
-       uint8_t x = FlexPot_GetPosition(6);  // IN6 = PC0
-       uint8_t y = FlexPot_GetPosition(8);  // IN8 = PC2
-
-       if (x == 3 && y == 3) {
-           rotate_servo_90();   // ← swing both channels to 1.8 ms (90°)
-           int len = snprintf(buf, sizeof(buf),
-                              "Correct! Coordinates are 3,3\r\n");
-           SerialOutputString((uint8_t*)buf, &USART1_PORT);
-
-       }
-
-       // 2) Otherwise, print coords and give feedback
-       int len = snprintf(buf, sizeof(buf),
-                          "X = %u, Y = %u\r\n", x, y);
-       SerialOutputString((uint8_t*)buf, &USART1_PORT);
-
-       float dx = (float)x - 3.0f;
-       float dy = (float)y - 3.0f;
-       float dist = sqrtf(dx*dx + dy*dy);
-
-       if (dist < prev_dist) {
-           strcpy(buf, "Closer!\r\n");
-       } else if (dist > prev_dist) {
-           strcpy(buf, "Further...\r\n");
-       } else {
-           strcpy(buf, "Same distance.\r\n");
-       }
-       SerialOutputString((uint8_t*)buf, &USART1_PORT);
-
-       prev_dist = dist;
+	  Puzzle3_Run();
 
     /* USER CODE BEGIN 3 */
   }

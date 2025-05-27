@@ -2,9 +2,10 @@
 
 #include "stm32f303xc.h"
 
-// NOTE: these are stored as pointers because they
-//       are const values so we can't store them directly
-//       in the struct
+/*
+Internal structure capturing all register pointers and GPIO configuration
+needed for a given UART port instance.
+*/
 struct _SerialPort {
 	volatile uint32_t *BaudRate;
 	volatile uint32_t *ControlRegister1;
@@ -35,7 +36,7 @@ enum {
 
 
 // instantiate the serial port parameters
-//   note: the complexity is hidden in the c file
+
 SerialPort USART1_PORT = {&(USART1->BRR),
 		&(USART1->CR1),
 		&(USART1->ISR),
@@ -86,41 +87,45 @@ void SerialInitialise(uint32_t baudRate, SerialPort *serial_port, void (*complet
 	// Baud rate calculation from datasheet
 	switch(baudRate){
 	case BAUD_9600:
-		// NEED TO FIX THIS !
-		*baud_rate_config = 0x46;  // 115200 at 8MHz
+		*baud_rate_config = 0x341*0x06;  // 9600 at 48MHz
 		break;
 	case BAUD_19200:
-		// NEED TO FIX THIS !
-		*baud_rate_config = 0x46;  // 115200 at 8MHz
+		*baud_rate_config = 0x1A1*0x06;  // 19200 at 48MHz
 		break;
 	case BAUD_38400:
-		// NEED TO FIX THIS !
-		*baud_rate_config = 0x46;  // 115200 at 8MHz
+		*baud_rate_config = 0xD0*0x06;  // 38400 at 48MHz
 		break;
 	case BAUD_57600:
-		// NEED TO FIX THIS !
-		*baud_rate_config = 0x46;  // 115200 at 8MHz
+		*baud_rate_config = 0x8B*0x06;  // 57600 at 48MHz
 		break;
 	case BAUD_115200:
-		*baud_rate_config = 0x46 * 0x06;  // 115200 at 8MHz
+		*baud_rate_config = 0x46*0x06;  // 115200 at 48MHz
 		break;
 	}
-
 
 	// enable serial port for tx and rx
 	*(serial_port->ControlRegister1) |= USART_CR1_TE | USART_CR1_RE | USART_CR1_UE;
 }
 
-
+/*
+Transmit a single byte, blocking until the TXE flag is set.
+data - Byte to transmit.
+serial_port - SerialPort instance to use.
+*/
 void SerialOutputChar(uint8_t data, SerialPort *serial_port) {
+    // Wait until Data Register Empty
 	while((*(serial_port->StatusRegister) & USART_ISR_TXE) == 0){
 	}
 
-	*(serial_port->DataOutputRegister) = data;
+	*(serial_port->DataOutputRegister) = data;      // Write data to TDR
 }
 
 
-
+/*
+Transmit a null-terminated string, then invoke callback if set.
+pt - Pointer to a C-string.
+serial_port - SerialPort instance to use.
+*/
 void SerialOutputString(uint8_t *pt, SerialPort *serial_port) {
 
 	uint32_t counter = 0;
@@ -129,7 +134,7 @@ void SerialOutputString(uint8_t *pt, SerialPort *serial_port) {
 		counter++;
 		pt++;
 	}
-
+    // Call completion callback if provided
 	if (serial_port->completion_function != 0x00)
 		serial_port->completion_function(counter);
 }

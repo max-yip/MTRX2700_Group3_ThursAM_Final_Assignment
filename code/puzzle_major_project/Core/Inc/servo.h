@@ -12,10 +12,10 @@
 #include "stm32f303xc.h"
 
 extern void (*on_button_press)();
-void enable_clocks();
+void enable_clocks(void);
 void enableGPIOAButton();
 void enable_interrupt();
-//void Servo_Init(void);
+void Servo_Init(void);
 
 void rotate_servo_90();
 

@@ -5,64 +5,70 @@
  *      Author: Paul Akle
  */
 
+// flexpot.c
+// Module: Flexible Potentiometer Reader
+// Provides initialisation and single-shot ADC readings on two flex-pots
+// mapped to discrete positions 1..6 (0 = no touch).
+
 #include "flexpot.h"
-#include "stm32f303xc.h"   // CMSIS
+#include "gpio.h"              // our new GPIO helpers
+#include "stm32f303xc.h"       // CMSIS
 
-#define NO_TOUCH_THRESHOLD   100U
-#define FLEXPOT_STEPS        6U   // we want positions 1..6
+#define NO_TOUCH_THRESHOLD   100U  // raw ADC count threshold
+#define FLEXPOT_STEPS        6U    // map raw to 1..6 positions
 
+/*
+Initialise ADC1 to read from PC0 (IN6) & PC2 (IN8).
+Utilises GPIO helpers for clock and pin setup.
+*/
 void FlexPot_Init(void) {
-    // 1) Enable GPIOC & ADC12 clocks
-    RCC->AHBENR |= RCC_AHBENR_GPIOCEN
-                 | RCC_AHBENR_ADC12EN;
+    // 1) GPIO setup
+    enable_flexpot_clocks();      // RCC clocks
+    configure_flexpot_gpio();     // PC0/PC2 → analog
 
-    // 2) PC0 & PC2 → analog
-    GPIOC->MODER |= (3U << (0*2))      // PC0 = IN6
-                  | (3U << (2*2));     // PC2 = IN8
-
-    // 3) ADC clock = PCLK/1
+    // 2) ADC common clock = PCLK/1
     ADC12_COMMON->CCR = (ADC12_COMMON->CCR & ~ADC12_CCR_CKMODE)
                       | ADC12_CCR_CKMODE_0;
 
-    // 4) Power up ADC regulator & delay
+    // 3) Power up ADC regulator & small delay
     ADC1->CR = (ADC1->CR & ~ADC_CR_ADVREGEN)
              | ADC_CR_ADVREGEN_0;
     for (volatile int i = 0; i < 1000; i++);
 
-    // 5) Self‐calibrate
+    // 4) Self-calibrate single-ended mode
     ADC1->CR &= ~ADC_CR_ADCALDIF;
     ADC1->CR |= ADC_CR_ADCAL;
     while (ADC1->CR & ADC_CR_ADCAL);
 
-    // 6) Long sample time on IN6 (PC0) & IN8 (PC2)
-    ADC1->SMPR1 = (0x7U << ADC_SMPR1_SMP6_Pos)   // channel 6
-                | (0x7U << ADC_SMPR1_SMP8_Pos);  // channel 8
+    // 5) Long sample time on channels 6 & 8
+    ADC1->SMPR1 = (0x7U << ADC_SMPR1_SMP6_Pos)
+                | (0x7U << ADC_SMPR1_SMP8_Pos);
 
-    // 7) Enable ADC & wait for ready
+    // 6) Enable ADC1 and wait until ready
     ADC1->ISR |= ADC_ISR_ADRDY;
     ADC1->CR  |= ADC_CR_ADEN;
     while (!(ADC1->ISR & ADC_ISR_ADRDY));
 }
 
-/// Poll one channel once, map raw→1..6
+/*
+- Perform one ADC conversion on channel, map raw to position 1..6.
+- ADC channel (6 for PC0, 8 for PC2)
+- pos - 0=no-touch or 1..6 mapped position
+*/
 uint8_t FlexPot_GetPosition(uint8_t channel) {
-    // 1) Select channel for single conversion
+    // start conversion on specified channel
     ADC1->SQR1 = ((uint32_t)channel << ADC_SQR1_SQ1_Pos);
-
-    // 2) Start conversion
-    ADC1->CR |= ADC_CR_ADSTART;
+    ADC1->CR  |= ADC_CR_ADSTART;
     while (!(ADC1->ISR & ADC_ISR_EOC));
 
-    // 3) Read & clear
+    // read raw 12-bit value
     uint32_t raw = ADC1->DR & 0x0FFF;
 
-    // 4) No‐touch?
-    if (raw < NO_TOUCH_THRESHOLD) {
-        return 0;
-    }
+    // no-touch check
+    if (raw < NO_TOUCH_THRESHOLD) return 0;
 
-    // 5) Map 0..4095 → 1..FLEXPOT_STEPS
-    uint8_t pos = (raw * (FLEXPOT_STEPS - 1U)) / 4095U + 1U;
-    if (pos > FLEXPOT_STEPS) pos = FLEXPOT_STEPS;
-    return pos;
+    // map raw → 1..FLEXPOT_STEPS
+    uint8_t pos = (uint8_t)((raw * (FLEXPOT_STEPS - 1U)) / 4095U + 1U);
+    return (pos > FLEXPOT_STEPS) ? FLEXPOT_STEPS : pos;
 }
+
