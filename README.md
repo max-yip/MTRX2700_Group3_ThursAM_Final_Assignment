@@ -64,7 +64,7 @@ microcontroller subsystems, sensors, and an actuator.
   5. Move on to the next challenge: during the travel, the user encounters an asteroid field and is required to shoot them down.
 
   ### Flowchart
-  [Code Structure for Challenge 1](https://github.com/user-attachments/assets/a4f232a0-6b97-424f-aa47-78fb3d73a3c2)
+  ![Code Structure Diagram](https://github.com/user-attachments/assets/fd46df77-896d-4bfe-87ae-b29aa4360ece)
 
   
   ### Additional Features
