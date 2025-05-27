@@ -103,8 +103,7 @@ minutes/                               # Meeting minutes
   3. Each time this occure one of the eight LEDs on the STM discovery board will light up untill all 8 astroids are destroyed
 
   ### Flowchart
-  ![puzzle3 drawio](https://github.com/user-attachments/assets/3e4938f3-2a46-4a50-9f3f-23e931263f6f)
-
+  ![puzzle2_2 drawio](https://github.com/user-attachments/assets/bae3235a-1351-4146-bbf9-e2d0d62517ab)
 
   
 </details>
@@ -129,8 +128,8 @@ minutes/                               # Meeting minutes
   4. Liquid-crystal Display (LCD)
 
   ### Flowchart
+  ![puzzle3 drawio](https://github.com/user-attachments/assets/4ba11099-8129-489e-9500-96aa903d71ce)
 
-  ![Puzzle3-Paul drawio](https://github.com/user-attachments/assets/e20776da-87a5-43a6-8d5b-a12ad4e82a18)
 
 </details>
 
