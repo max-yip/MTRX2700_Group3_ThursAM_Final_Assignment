@@ -77,7 +77,7 @@ minutes/                               # Meeting minutes
   5. Move on to the next challenge: during the travel, the user encounters an asteroid field and is required to shoot them down.
 
   ### Code Structure Diagram
-  ![Code Structure Diagram](https://github.com/user-attachments/assets/fd46df77-896d-4bfe-87ae-b29aa4360ece)
+  ![puzzle2_2 drawio](https://github.com/user-attachments/assets/3f9fafcd-013b-4ae5-8390-1afd6b9dabe2)
 
   
   ### Additional Features
@@ -103,9 +103,7 @@ minutes/                               # Meeting minutes
   3. Each time this occure one of the eight LEDs on the STM discovery board will light up untill all 8 astroids are destroyed
 
   ### Flowchart
-
-
-![Puzzle2-Paul drawio](https://github.com/user-attachments/assets/7ae7bd23-1bf2-461a-beda-083f33714b6a)
+  ![puzzle3 drawio](https://github.com/user-attachments/assets/3e4938f3-2a46-4a50-9f3f-23e931263f6f)
 
 
   
