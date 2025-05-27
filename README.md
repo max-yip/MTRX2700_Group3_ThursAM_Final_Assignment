@@ -47,6 +47,18 @@ microcontroller subsystems, sensors, and an actuator.
   - Servo motor
 
 
+## Repository Overview
+### File Structure
+```
+CAD/                                   # All the CAD files (including STEP AND STL can be found here
+code/
+  ├── modules and interfaces/          # Individual modules that are not required for the challenges
+  └── major_project_ptu                # STM Project for Challenge 1
+  └── puzzle_major_project                # STM Project for Challenge 2&3
+  └── major_project_lightsaber         # STM Project for Challenge 4
+minutes/                               # Meeting minutes
+```
+
 
 ## Project Overview
 <details>
@@ -63,7 +75,7 @@ microcontroller subsystems, sensors, and an actuator.
   4. Once all the distances are obtained, it will reveal coordinates to the hidden planet.
   5. Move on to the next challenge: during the travel, the user encounters an asteroid field and is required to shoot them down.
 
-  ### Flowchart
+  ### Code Structure Diagram
   ![Code Structure Diagram](https://github.com/user-attachments/assets/fd46df77-896d-4bfe-87ae-b29aa4360ece)
 
   
