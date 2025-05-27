@@ -53,9 +53,10 @@ microcontroller subsystems, sensors, and an actuator.
 CAD/                                   # All the CAD files (including STEP AND STL can be found here
 code/
   ├── modules and interfaces/          # Individual modules that are not required for the challenges
-  └── major_project_ptu                # STM Project for Challenge 1
-  └── puzzle_major_project                # STM Project for Challenge 2&3
-  └── major_project_lightsaber         # STM Project for Challenge 4
+  └── major_project_ptu/               # STM Project for Challenge 1
+  └── GUI_interface/                   # PyQt6 GUI for Challenge 1
+  └── puzzle_major_project/            # STM Project for Challenge 2 & 3
+  └── major_project_lightsaber/        # STM Project for Challenge 4
 minutes/                               # Meeting minutes
 ```
 
