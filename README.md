@@ -14,7 +14,7 @@ microcontroller subsystems, sensors, and an actuator.
 
 ### Paul Akle
 - **Integration:**
-  - Puzzle 2 & 3 integration
+  - Challenge 2 & 3 integration
 - **Software Interfaces:**
   - Break beam sensor module
   - Servo motor control
@@ -22,7 +22,7 @@ microcontroller subsystems, sensors, and an actuator.
 
 ### Max Yip
 - **Integration:**
-  - Puzzle 1 & 4 integration
+  - Challenge 1 & 4 integration
 - **Software Interfaces:**
   - PyQt GUI design and implementation
   - PTU module
