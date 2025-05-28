@@ -14,12 +14,11 @@ from enum import Enum
 SENTINEL_1 = 0xAA
 SENTINEL_2 = 0x55
 
+
 class MessageType(Enum):
     SENSOR_DATA = 0
-    LED_STATE = 1
-    BUTTON_AND_STATUS = 2
-    STRING_PACKET = 3
-    SERVO_PWM = 4
+    STRING_PACKET = 1
+    SERVO_PWM = 2
 
 
 def pack_buffer(message_type, data):
@@ -27,15 +26,8 @@ def pack_buffer(message_type, data):
     header = struct.pack('<BBHH', SENTINEL_1, SENTINEL_2, message_type, data_length)
     return header + data
 
-def receive_and_unpack_buffer(ser):
-    """
-    data_length_map = {
-        MessageType.SENSOR_DATA: 7 * 4,   # 6 * int32_t + 1 * uint32_t
-        MessageType.LED_STATE: 1,         # 1 * uint8_t
-        MessageType.BUTTON_AND_STATUS: 1, # 1 * uint8_t
-    }
-    """
 
+def receive_and_unpack_buffer(ser):
     # Wait for the sentinel bytes
     while True:
         byte = ser.read(1)
@@ -49,25 +41,22 @@ def receive_and_unpack_buffer(ser):
     header_buffer = ser.read(header_length)
     header_buffer = bytes([SENTINEL_1, SENTINEL_2]) + header_buffer
 
-    # Check the entire header was loaded
     if len(header_buffer) < 6:
         return None, None
 
-    # unpack the header
     sentinel1, sentinel2, message_type_received, data_length = struct.unpack('<BBHH', header_buffer[:6])
 
-    # double check the header
     if sentinel1 != SENTINEL_1 or sentinel2 != SENTINEL_2:
         return None, None
 
-    # Read the data based on the data length specified in the header
     data_buffer = ser.read(data_length)
     return MessageType(message_type_received), data_buffer
 
 
 class SerialReader(QThread):
     data_received = pyqtSignal(list)
-    color_change = pyqtSignal(bool)
+    servo_data_received = pyqtSignal(tuple)
+    string_packet_received = pyqtSignal(str)
 
     def __init__(self, port, baud_rate=9600, timeout=1):
         super().__init__()
@@ -80,49 +69,24 @@ class SerialReader(QThread):
         try:
             ser = serial.Serial(self.port, self.baud_rate, timeout=self.timeout)
 
-            # Toggle the state every 0.5 seconds so that the LED blinks
-            toggle_value = False
-            toggle_interval = 0.5  # Toggle interval in seconds
-            next_toggle_time = time.time() + toggle_interval
-
             while True:
                 message_type, data = receive_and_unpack_buffer(ser)
-                # print (str(message_type))
-
                 if message_type == MessageType.SENSOR_DATA:
+                    # 6 int32 + 1 uint32 = 7 values
                     sensor_data = struct.unpack('<iiiiiiI', data)
                     self.data_received.emit(list(sensor_data))
-                    # print('Sensor:', sensor_data)
 
-                elif message_type == MessageType.BUTTON_AND_STATUS:
-                    sensor_data = struct.unpack('<B', data)
-                    # print ("received button status" + str(data))
+                elif message_type == MessageType.SERVO_PWM:
+                    pwm_values = struct.unpack('<HH', data)
+                    self.servo_data_received.emit(pwm_values)
 
-                    if (sensor_data[0] & 0x01 == 1):
-                        self.color_change.emit(True)
-                        self.color_change.emit(False)
-                        
-
-                current_time = time.time()
-
-                if current_time >= next_toggle_time:
-                    toggle_value = not toggle_value
-                    next_toggle_time = current_time + toggle_interval
-
-                if (toggle_value):
-                    led_state = 0b01010101
-                else:
-                    led_state = 0b10101010
-                
-                # Example for sending LED state
-                data = struct.pack('<B', led_state)
-                buffer = pack_buffer(MessageType.LED_STATE.value, data)
-                ser.write(buffer)
-
+                elif message_type == MessageType.STRING_PACKET:
+                    # data is raw bytes of string packet
+                    string_data = data.decode('utf-8', errors='ignore')
+                    self.string_packet_received.emit(string_data)
 
         except Exception as e:
             print(f"Error reading from serial port: {e}")
-
 
 
 class MainWindow(QMainWindow):

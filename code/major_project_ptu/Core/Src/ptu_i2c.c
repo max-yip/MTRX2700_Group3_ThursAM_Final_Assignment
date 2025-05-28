@@ -59,31 +59,46 @@ void initialise_ptu_i2c(I2C_HandleTypeDef *i2c) {
 }
 
 
-void read_gyro_data (I2C_HandleTypeDef *i2c, int16_t *yaw, int16_t *pitch, int16_t *roll){
-	uint8_t xMSB = 0x00, xLSB = 0x00;
-	HAL_I2C_Mem_Read(i2c, gyro_rd, 0x29, 1, &xMSB, 1, 10);
-	HAL_I2C_Mem_Read(i2c, gyro_rd, 0x28, 1, &xLSB, 1, 10);
-	*yaw = ((int16_t)(xMSB << 8) | xLSB);
 
-	uint8_t yMSB = 0x00, yLSB = 0x00;
-	HAL_I2C_Mem_Read(i2c, gyro_rd, 0x2B, 1, &yMSB, 1, 10);
-	HAL_I2C_Mem_Read(i2c, gyro_rd, 0x2A, 1, &yLSB, 1, 10);
-	*pitch = ((int16_t)(yMSB << 8) | yLSB);
+// Read gyro data from sensor registers via I2C and combine MSB/LSB for each axis
+void read_gyro_data(I2C_HandleTypeDef *i2c, int16_t *yaw, int16_t *pitch, int16_t *roll) {
+    uint8_t xMSB = 0x00, xLSB = 0x00;
+    HAL_I2C_Mem_Read(i2c, gyro_rd, 0x29, 1, &xMSB, 1, 10);
+    HAL_I2C_Mem_Read(i2c, gyro_rd, 0x28, 1, &xLSB, 1, 10);
+    *yaw = (int16_t)((xMSB << 8) | xLSB);
 
-	uint8_t zMSB = 0x00, zLSB = 0x00;
-	HAL_I2C_Mem_Read(i2c, gyro_rd, 0x2D, 1, &zMSB, 1, 10);
-	HAL_I2C_Mem_Read(i2c, gyro_rd, 0x2C, 1, &zLSB, 1, 10);
-	*roll = ((int16_t)(zMSB << 8) | zLSB);
+    uint8_t yMSB = 0x00, yLSB = 0x00;
+    HAL_I2C_Mem_Read(i2c, gyro_rd, 0x2B, 1, &yMSB, 1, 10);
+    HAL_I2C_Mem_Read(i2c, gyro_rd, 0x2A, 1, &yLSB, 1, 10);
+    *pitch = (int16_t)((yMSB << 8) | yLSB);
+
+    uint8_t zMSB = 0x00, zLSB = 0x00;
+    HAL_I2C_Mem_Read(i2c, gyro_rd, 0x2D, 1, &zMSB, 1, 10);
+    HAL_I2C_Mem_Read(i2c, gyro_rd, 0x2C, 1, &zLSB, 1, 10);
+    *roll = (int16_t)((zMSB << 8) | zLSB);
 }
 
+// Read accelerometer data (6 bytes: 2 bytes per axis) and combine MSB/LSB for each axis
+void read_accel_data(I2C_HandleTypeDef *i2c, int16_t *acc_x, int16_t *acc_y, int16_t *acc_z) {
+    uint8_t accel_data[6] = {0};
+    HAL_I2C_Mem_Read(i2c, accel_rd, ADXL345_DATAX0, 1, accel_data, 6, 100);
 
-
-void read_accel_data(I2C_HandleTypeDef *i2c, int16_t *acc_x, int16_t *acc_y, int16_t *acc_z){
-	uint8_t accel_data[6] = {0};
-	HAL_I2C_Mem_Read(i2c, accel_rd, ADXL345_DATAX0, 1, accel_data, 6, 100);
-	// Combine LSB and MSB
-	*acc_x = (int16_t)((accel_data[1] << 8) | accel_data[0]);
-	*acc_y = (int16_t)((accel_data[3] << 8) | accel_data[2]);
-	*acc_z = (int16_t)((accel_data[5] << 8) | accel_data[4]);
+    // Combine LSB and MSB for each axis
+    *acc_x = (int16_t)((accel_data[1] << 8) | accel_data[0]);
+    *acc_y = (int16_t)((accel_data[3] << 8) | accel_data[2]);
+    *acc_z = (int16_t)((accel_data[5] << 8) | accel_data[4]);
 }
+
+// Combined function to read both gyro and accelerometer data in one call
+void get_gyro_accel(I2C_HandleTypeDef* i2c,
+                    int16_t* yaw_rate, int16_t* pitch_rate, int16_t* roll_rate,
+                    int16_t* acc_x, int16_t* acc_y, int16_t* acc_z) {
+
+    // Retrieve gyro measurements
+    read_gyro_data(i2c, yaw_rate, pitch_rate, roll_rate);
+
+    // Retrieve accelerometer measurements
+    read_accel_data(i2c, acc_x, acc_y, acc_z);
+}
+
 

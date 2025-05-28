@@ -28,4 +28,8 @@ void read_gyro_data (I2C_HandleTypeDef *i2c, int16_t *yaw, int16_t *pitch, int16
 
 void read_accel_data(I2C_HandleTypeDef *i2c, int16_t *acc_x, int16_t *acc_y, int16_t *acc_z);
 
+void get_gyro_accel(I2C_HandleTypeDef *i2c,
+                    int16_t* yaw_rate, int16_t* pitch_rate, int16_t* roll_rate,
+                    int16_t* acc_x, int16_t* acc_y, int16_t* acc_z);
+
 #endif /* INC_PTU_I2C_H_ */

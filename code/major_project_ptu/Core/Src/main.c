@@ -89,23 +89,13 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-//
-//	enableGPIOClocks(); //clock function above -- need to modularise
-//	enableGPIOELEDS(); // initialise leds
-
-	serialInitialise(BAUD_115200, &USART1_PORT, &servo_command_parser);
-//	&servo_command_parser
-	serialReceiveInterrupt(&USART1_PORT);
-
-//	LedRegister *led_register = ((uint8_t*)&(GPIOE->ODR)) + 1;
-
-//	HAL_StatusTypeDef return_value = HAL_OK;  // previous operation succeeded.
-
-	volatile uint16_t vertical_PWM = 1551;
-	volatile uint16_t horizontal_PWM = 1551;
-	// set servo position
-
-
+//	Pin connections
+//	SCL to PB6
+//	SDA to PB7
+//	PWM1 to PA1
+//	PWM2 to PA15
+//	LASPWM to PA8
+//	rest to ground
 
   /* USER CODE END 1 */
 
@@ -134,23 +124,43 @@ int main(void)
   MX_TIM1_Init();
   /* USER CODE BEGIN 2 */
 
-  	// initialise gyro i2c
-  	initialise_ptu_i2c(&hi2c1);
 
-  	//reset lidar board
-  	uint8_t return_value = 0x00;
-  	return_value = HAL_I2C_Mem_Write(&hi2c1, LIDAR_WR, 0x00, 1, &return_value, 1, 10);
+	  // Initialise UART serial communication at 115200 baud
+	  // and set the command parser callback for servo control
+	  serialInitialise(BAUD_115200, &USART1_PORT, &servo_command_parser);
 
-  	// initialise servo pwm
-  	return_value = initialise_ptu_pwm(&htim1, &htim2);
+	  // Enable receive interrupt for non-blocking serial input
+	  serialReceiveInterrupt(&USART1_PORT);
 
-  	// need to do these in interrupts
-  	setServoPWM(vertical_PWM, horizontal_PWM);
+	  // Initialise I2C interface for the pan-tilt unit (gyro, accel, etc.)
+	  initialise_ptu_i2c(&hi2c1);
 
-  	//initialise median filter
-  	Filter dataFilters[NUM_DATA];
-  	initFilters(dataFilters, 0);
+	  uint8_t return_value = 0x00;
 
+	  return_value = HAL_I2C_Mem_Write(&hi2c1, LIDAR_WR, 0x00, 1, &return_value, 1, 10);
+	  if (return_value != HAL_OK) {
+	      // Handle I2C error
+	      Error_Handler();
+	  }
+
+	  return_value = initialise_ptu_pwm(&htim1, &htim2);
+	  if (return_value != HAL_OK) {
+	      // Handle PWM init failure
+	      Error_Handler();
+	  }
+
+	  // Create and initialise an array of median filters for sensor data
+	  Filter dataFilters[NUM_DATA];
+	  initFilters(dataFilters, 0);  // Fill filter windows with initial value 0
+
+	  // Variables to hold filtered sensor data
+	  uint16_t filtered_lidar;
+	  int16_t filtered_roll, filtered_pitch, filtered_yaw;
+	  int16_t filtered_acc_x, filtered_acc_y, filtered_acc_z;
+
+	  // Variables to hold raw sensor data
+	  int16_t yaw = 0, pitch = 0, roll = 0;
+	  int16_t ax = 0, ay = 0, az = 0;
 
   /* USER CODE END 2 */
 
@@ -160,109 +170,42 @@ int main(void)
   {
     /* USER CODE END WHILE */
 
-	  	// do these in interrupts (work in progress)
-		// get gyro data
-	  	int16_t yaw_rate = 0, pitch_rate = 0, roll_rate = 0;
-	  	read_gyro_data(&hi2c1, &yaw_rate, &pitch_rate, &roll_rate);
+	    // Read raw gyro and accelerometer data from IMU
+	    get_gyro_accel(&hi2c1, &yaw, &pitch, &roll, &ax, &ay, &az);
 
-		// get accel data
-		int16_t acc_x = 0, acc_y = 0, acc_z = 0;
-		read_accel_data(&hi2c1, &acc_x, &acc_y, &acc_z);
-
-		// do above in interrupts
-
-
-		// last period from ptu_lidar
-		if (last_period > 4000) // limit set as 4m
-			last_period = 4000;
-
-		// ====== filtering =====
-
-		uint16_t filtered_lidar = getMedian(&dataFilters[LIDAR], last_period);
-
-		int16_t filtered_roll = getMedian(&dataFilters[GYRO_X], roll_rate);
-		int16_t filtered_pitch = getMedian(&dataFilters[GYRO_Y], pitch_rate);
-		int16_t filtered_yaw = getMedian(&dataFilters[GYRO_Z], yaw_rate);
-
-		int16_t filtered_acc_x = getMedian(&dataFilters[ACCEL_X], acc_x);
-		int16_t filtered_acc_y = getMedian(&dataFilters[ACCEL_Y], acc_y);
-		int16_t filtered_acc_z = getMedian(&dataFilters[ACCEL_Z], acc_z);
+	    // Apply median filtering to raw sensor data to remove noise
+	    filter_all_sensor_data(dataFilters, last_period,
+	                           roll, pitch, yaw,
+	                           ax, ay, az,
+	                           &filtered_lidar,
+	                           &filtered_roll, &filtered_pitch, &filtered_yaw,
+	                           &filtered_acc_x, &filtered_acc_y, &filtered_acc_z);
 
 
 
 		// ===== SERIAL DEBUG =====
 		// send data without serialisation, lidar distance set as 0 as i2c doesnt work
-		//uint8_t string_to_send[128];
-		//sprintf(string_to_send, "last period: %hu, lidar distance: %hu, roll: %hd, pitch: %hd, yaw: %hd\r\n", filtered_lidar, 0, filtered_roll, filtered_pitch, filtered_yaw);
-		//transmitString(string_to_send, &USART1_PORT);
-
-
-
-		// Construct a button data packet and send over serial
-		Data button_data;
-		uint8_t button_data_packet_buffer[6 + sizeof(ButtonAndStatus)] = {0}; // Header + SensorData
-		button_data.button_and_status.button_state = GPIOA->IDR & 0x01;
-
-		uint16_t button_data_buffer_length = pack_buffer(button_data_packet_buffer, BUTTON_AND_STATUS, &button_data);
-		serialOutputBuffer(button_data_packet_buffer, button_data_buffer_length, &USART1_PORT); // Send the buffer over serial
+//		uint8_t string_to_send[128];
+//		sprintf(string_to_send, "last period: %hu, lidar distance: %hu, roll: %hd, pitch: %hd, yaw: %hd\r\n", filtered_lidar, 0, filtered_roll, filtered_pitch, filtered_yaw);
+//		transmitString(string_to_send, &USART1_PORT);
 
 
 
 		// Construct a sensor data packet and send over serial
-		Data sensor_data;
-		uint8_t sensor_data_packet_buffer[6 + sizeof(SensorData)] = {0}; // Header + SensorData
-
-		// Fill sensor_data.sensor_data with your actual sensor readings
-		sensor_data.sensor_data.gyro_x = filtered_roll;
-		sensor_data.sensor_data.gyro_y = filtered_pitch;
-		sensor_data.sensor_data.gyro_z = filtered_yaw;
-		sensor_data.sensor_data.acc_x = filtered_acc_x;
-		sensor_data.sensor_data.acc_y = filtered_acc_y;
-		sensor_data.sensor_data.acc_z = filtered_acc_z;
-		sensor_data.sensor_data.lidar_pwm = filtered_lidar;
-//		sensor_data.sensor_data.lidar_i2c = 0; // not working
+	    sendSensorData(filtered_roll, filtered_pitch, filtered_yaw,
+	                     filtered_acc_x, filtered_acc_y, filtered_acc_z,
+	                     filtered_lidar, &USART1_PORT);
 
 
-
-		uint16_t sensor_data_buffer_length = pack_buffer(sensor_data_packet_buffer, SENSOR_DATA, &sensor_data);
-		serialOutputBuffer(sensor_data_packet_buffer, sensor_data_buffer_length, &USART1_PORT); // Send the buffer over serial
-
-
-		// lidar needs to do more smoothing now that its sending data way faster
-		// servo interrupts cant do shit cuz its sending too fast
-
-
-		// Read a data packet from serial
+//		// Read a data packet from serial
 
 		uint8_t data_packet_input_buffer[32] = {0};
 
-		// Step 1: Read header
+//		Read header
 		uint16_t header_size = serialInputPacketHeader((char *)data_packet_input_buffer, &USART1_PORT);
 		if (header_size == 0) {
 		    // Handle header receive failure
 		}
-
-//		// Step 2: Parse header
-//		Header incoming_header = {0};
-//		memcpy(&incoming_header, data_packet_input_buffer, sizeof(Header));
-//
-//		if (incoming_header.message_type == SERVO_PWM) {
-//		    // Step 3: Read the payload
-//		    uint16_t payload_len = incoming_header.data_length;
-//		    uint8_t data_payload_buffer[32] = {0};  // or allocate dynamically if needed
-//
-//		    uint16_t success = serialInputDataPacket((char *)data_payload_buffer, payload_len, &USART1_PORT);
-//		    if (success != payload_len) {
-//		        // Handle payload receive failure
-//		    }
-//
-//		    // Step 4: Unpack data
-//		    Data data_union = {0};
-//		    memcpy(&data_union.servo_data, data_payload_buffer, sizeof(ServoData));  // or use unpack_buffer if you want
-//
-//		    // Step 5: Use the data
-//		    setServoPWM(data_union.servo_data.pwm1, data_union.servo_data.pwm2);
-//		}
 
 
 		/* USER CODE BEGIN 3 */

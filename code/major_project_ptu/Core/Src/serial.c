@@ -422,3 +422,30 @@ uint16_t serialInputDataPacket(char *buffer, int length, SerialPort *serial_port
 
 	return index;
 }
+
+
+
+
+void sendSensorData(int16_t filtered_roll, int16_t filtered_pitch, int16_t filtered_yaw,
+                      int16_t filtered_acc_x, int16_t filtered_acc_y, int16_t filtered_acc_z,
+                      uint16_t filtered_lidar, SerialPort *serial_port) {
+    Data sensor_data;
+    uint8_t sensor_data_packet_buffer[6 + sizeof(SensorData)] = {0}; // Header + SensorData
+
+    // Fill sensor_data.sensor_data with actual sensor readings
+    sensor_data.sensor_data.gyro_x = filtered_roll;
+    sensor_data.sensor_data.gyro_y = filtered_pitch;
+    sensor_data.sensor_data.gyro_z = filtered_yaw;
+    sensor_data.sensor_data.acc_x = filtered_acc_x;
+    sensor_data.sensor_data.acc_y = filtered_acc_y;
+    sensor_data.sensor_data.acc_z = filtered_acc_z;
+    sensor_data.sensor_data.lidar_pwm = filtered_lidar;
+    // sensor_data.sensor_data.lidar_i2c = 0; // Not used
+
+    // Pack data into buffer
+    uint16_t sensor_data_buffer_length = pack_buffer(sensor_data_packet_buffer, SENSOR_DATA, &sensor_data);
+
+    // Send buffer over serial port
+    serialOutputBuffer(sensor_data_packet_buffer, sensor_data_buffer_length, serial_port);
+}
+

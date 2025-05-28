@@ -9,13 +9,11 @@
 #define SENTINEL_1 0xAA
 #define SENTINEL_2 0x55
 
-// Enum for message types
+// Enum for message types (only active types retained)
 typedef enum {
     SENSOR_DATA = 0,
-    LED_STATE = 1,
-    BUTTON_AND_STATUS = 2,
-    STRING_PACKET = 3,
-	SERVO_PWM = 4
+    STRING_PACKET = 1,
+    SERVO_PWM = 2
 } MessageType;
 
 
@@ -28,37 +26,15 @@ typedef struct {
     int32_t gyro_y;
     int32_t gyro_z;
     uint32_t lidar_pwm;
-//    uint32_t lidar_i2c;
 } SensorData;
 
 
 // Servo data struct
-typedef struct{
-	uint16_t pwm1;
-	uint16_t pwm2;
+typedef struct {
+    uint16_t pwm1;
+    uint16_t pwm2;
 } ServoData;
 
-
-// LED state struct
-typedef union {
-    uint8_t led_byte;
-    struct {
-        uint8_t led0 : 1;
-        uint8_t led1 : 1;
-        uint8_t led2 : 1;
-        uint8_t led3 : 1;
-        uint8_t led4 : 1;
-        uint8_t led5 : 1;
-        uint8_t led6 : 1;
-        uint8_t led7 : 1;
-    } led_bits;
-} LEDState;
-
-// Button and microcontroller status struct
-typedef struct {
-    uint8_t button_state : 1;
-    uint8_t mcu_status : 7;
-} ButtonAndStatus;
 
 // Variable length string packet struct
 typedef struct {
@@ -66,22 +42,23 @@ typedef struct {
     char *data;
 } StringPacket;
 
-// Union of data types
+
+// Union of data types (only remaining types)
 typedef union {
     SensorData sensor_data;
-    LEDState led_state;
-    ButtonAndStatus button_and_status;
     StringPacket string_packet;
     ServoData servo_data;
 } Data;
 
-// Header structure
+
+// Message header structure
 typedef struct {
     uint8_t sentinel1;
     uint8_t sentinel2;
     uint16_t message_type;
     uint16_t data_length;
 } Header;
+
 
 // Function to pack data into a buffer for transmission
 uint16_t pack_buffer(uint8_t *buffer, MessageType message_type, Data *data);

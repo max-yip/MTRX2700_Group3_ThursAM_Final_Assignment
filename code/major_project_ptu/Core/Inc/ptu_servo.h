@@ -15,9 +15,10 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-HAL_StatusTypeDef initialise_ptu_pwm(TIM_HandleTypeDef *htim1, TIM_HandleTypeDef *htim2);
 
 void setServoPWM(uint16_t vertical_PWM, uint16_t horizontal_PWM);
+
+HAL_StatusTypeDef initialise_ptu_pwm(TIM_HandleTypeDef *htim1, TIM_HandleTypeDef *htim2);
 
 void servo_command_parser(SerialPort *serial_port);
 

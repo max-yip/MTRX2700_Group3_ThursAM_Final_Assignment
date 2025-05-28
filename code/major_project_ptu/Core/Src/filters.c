@@ -23,9 +23,7 @@
 // uint8_t length n
 
 //use WINDOWLEN = 5
-
-
-// --------- FILTER INITIALISATION -------
+// --------- FILTER INITIALISATION ---------
 void initFilters(Filter *filters, uint16_t init_value) {
     for (int i = 0; i < NUM_DATA; i++) {
         for (int j = 0; j < WINDOWLEN; j++) {
@@ -36,16 +34,16 @@ void initFilters(Filter *filters, uint16_t init_value) {
 }
 
 
-// ------ HELPER FUNCTIONS --------
-// current index, length of the array, array
-void slidingWindow(Filter* filter, uint16_t new_value){
-	// insert value in sliding window
-	filter->window[filter->idx] = new_value;
-	// if current index is length-1, reset current index to 0, else current index ++
-	filter->idx = (filter->idx+1) % WINDOWLEN;
+// --------- HELPER FUNCTIONS ---------
+
+// Insert new_value into sliding window buffer of filter, update index cyclically
+void slidingWindow(Filter* filter, uint16_t new_value) {
+    filter->window[filter->idx] = new_value;
+    filter->idx = (filter->idx + 1) % WINDOWLEN;
 }
 
-void insertionSort(uint16_t* arr, uint8_t n){
+// Insertion sort used for small fixed-size array sorting
+void insertionSort(uint16_t* arr, uint8_t n) {
     for (uint8_t i = 1; i < n; i++) {
         uint16_t key = arr[i];
         int8_t j = i - 1;
@@ -58,28 +56,79 @@ void insertionSort(uint16_t* arr, uint8_t n){
 }
 
 
-// ------- MEDIAN FILTER ----------
-uint16_t getMedian(Filter* filter, uint16_t new_value){
-	slidingWindow(filter, new_value);
+// --------- MEDIAN FILTER ---------
 
-	//temporary buffer for sorting
-	uint16_t temp[WINDOWLEN];
-	memcpy(temp, filter->window, sizeof(temp));
+// Apply median filter on new_value using sliding window buffer inside filter
+uint16_t getMedian(Filter* filter, uint16_t new_value) {
+    slidingWindow(filter, new_value);
 
-	insertionSort(temp, WINDOWLEN);
+    uint16_t temp[WINDOWLEN];
+    memcpy(temp, filter->window, sizeof(temp));
 
-	return temp[WINDOWLEN/2]; // middle
+    insertionSort(temp, WINDOWLEN);
+    return temp[WINDOWLEN / 2];  // middle element
 }
 
 
-// --------- MOVING AVERAGE FILTER -------
-uint16_t getMovingAverage(Filter* filter, uint16_t new_value){
-	slidingWindow(filter, new_value);
+// --------- MOVING AVERAGE FILTER ---------
 
-	uint16_t sum = 0;
-	for (uint8_t i = 0; i<WINDOWLEN; i++){
-		sum = sum + filter->window[i];
-	}
+// Apply moving average filter on new_value using sliding window buffer inside filter
+uint16_t getMovingAverage(Filter* filter, uint16_t new_value) {
+    slidingWindow(filter, new_value);
 
-	return sum/WINDOWLEN; // moving avg
+    uint32_t sum = 0;
+    for (uint8_t i = 0; i < WINDOWLEN; i++) {
+        sum += filter->window[i];
+    }
+    return (uint16_t)(sum / WINDOWLEN);
 }
+
+
+// --------- INLINE FILTER FOR SINGLE AXIS ---------
+
+// Inline helper for median filtering of single axis value
+static inline int16_t filter_axis(Filter* filter, int16_t value) {
+    return (int16_t)getMedian(filter, (uint16_t)value);
+}
+
+
+// --------- SENSOR DATA FILTERING ---------
+
+// Filter gyro data (roll, pitch, yaw) using dedicated filters
+void filter_gyro_data(Filter* dataFilters,
+                      int16_t roll_rate, int16_t pitch_rate, int16_t yaw_rate,
+                      int16_t* filtered_roll, int16_t* filtered_pitch, int16_t* filtered_yaw) {
+
+    *filtered_roll  = filter_axis(&dataFilters[GYRO_X], roll_rate);
+    *filtered_pitch = filter_axis(&dataFilters[GYRO_Y], pitch_rate);
+    *filtered_yaw   = filter_axis(&dataFilters[GYRO_Z], yaw_rate);
+}
+
+// Filter accelerometer data (x, y, z) using dedicated filters
+void filter_accel_data(Filter* dataFilters,
+                       int16_t acc_x, int16_t acc_y, int16_t acc_z,
+                       int16_t* filtered_acc_x, int16_t* filtered_acc_y, int16_t* filtered_acc_z) {
+
+    *filtered_acc_x = filter_axis(&dataFilters[ACCEL_X], acc_x);
+    *filtered_acc_y = filter_axis(&dataFilters[ACCEL_Y], acc_y);
+    *filtered_acc_z = filter_axis(&dataFilters[ACCEL_Z], acc_z);
+}
+
+// Filter all sensor data: lidar (median filter), gyro and accelerometer (median per axis)
+void filter_all_sensor_data(Filter* dataFilters,
+                            uint16_t last_period,
+                            int16_t roll_rate, int16_t pitch_rate, int16_t yaw_rate,
+                            int16_t acc_x, int16_t acc_y, int16_t acc_z,
+                            uint16_t* filtered_lidar,
+                            int16_t* filtered_roll, int16_t* filtered_pitch, int16_t* filtered_yaw,
+                            int16_t* filtered_acc_x, int16_t* filtered_acc_y, int16_t* filtered_acc_z) {
+
+    *filtered_lidar = getMedian(&dataFilters[LIDAR], last_period);
+
+    filter_gyro_data(dataFilters, roll_rate, pitch_rate, yaw_rate,
+                     filtered_roll, filtered_pitch, filtered_yaw);
+
+    filter_accel_data(dataFilters, acc_x, acc_y, acc_z,
+                      filtered_acc_x, filtered_acc_y, filtered_acc_z);
+}
+

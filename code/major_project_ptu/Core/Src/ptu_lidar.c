@@ -28,6 +28,11 @@ void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim){
 		diff = IC_Val1 - last_capture;
 		last_capture = IC_Val1;
 	}
+
+
+	// last period from ptu_lidar
+	if (last_period > 4000) // limit set as 4m
+		last_period = 4000;
 }
 
 

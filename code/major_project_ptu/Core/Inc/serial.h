@@ -89,4 +89,10 @@ uint16_t serialInputPacketHeader(char *buffer, SerialPort *serial_port);
 
 uint16_t serialInputDataPacket(char *buffer, int length, SerialPort *serial_port);
 
+
+// ---------- Sending Data -------------
+
+void sendSensorData(int16_t filtered_roll, int16_t filtered_pitch, int16_t filtered_yaw,
+                      int16_t filtered_acc_x, int16_t filtered_acc_y, int16_t filtered_acc_z,
+                      uint16_t filtered_lidar, SerialPort *serial_port);
 #endif

@@ -24,7 +24,7 @@ class SpaceControlPanel(QWidget):
         self.planet_data_storage = {0:[0,1551,''], 1:[0,1551,''], 2:[0,1551,'']}  
         # Store data for each planet index:[lidar_distance, dial_value, dial color]
         
-        self.planet_target = {0:[[540,650],[1300,1330]], 1:[[340, 490],[1560,1660]], 2:[[580,620],[1830,1850]]}
+        self.planet_target = {0:[[540,650],[1300,1330]], 1:[[450, 550],[1560,1660]], 2:[[540,650],[1830,1850]]}
         # Store target ranges for each planet index:[[lidar_range],[slider_range]]
 
         self.initUI()
@@ -101,14 +101,6 @@ class SpaceControlPanel(QWidget):
         msg = f"{pwm1},{pwm2}\n"
         print(msg) # Debugging line
         self.serial_reader.serial_port.write(msg.encode())
-        # data = struct.pack('<HH', pwm1, pwm2)
-        # buffer = pack_buffer(MessageType.SERVO_PWM.value, data)
-        # # Use the serial port from SerialReader
-        # if hasattr(self, 'serial_reader') and self.serial_reader.serial_port and self.serial_reader.serial_port.is_open:
-        #     self.serial_reader.serial_port.write(buffer)
-        #     print(f"Sent servo command: {pwm1}, {pwm2}")
-        # else:
-        #     print("Serial port not open!")
 
     def process_chat_input(self):
         from core import logic
