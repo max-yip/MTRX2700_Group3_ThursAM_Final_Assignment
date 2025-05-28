@@ -46,6 +46,7 @@ void FlexPot_Init(void) {
                 | (0x7U << ADC_SMPR1_SMP8_Pos);
 
     // 6) Enable ADC1 and wait until ready
+    // ADC is fully powered, clocked, and ready to start conversions.
     ADC1->ISR |= ADC_ISR_ADRDY;
     ADC1->CR  |= ADC_CR_ADEN;
     while (!(ADC1->ISR & ADC_ISR_ADRDY));
