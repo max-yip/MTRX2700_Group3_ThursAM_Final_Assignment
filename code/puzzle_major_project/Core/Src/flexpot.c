@@ -11,7 +11,7 @@
 // mapped to discrete positions 1..6 (0 = no touch).
 
 #include "flexpot.h"
-#include "gpio.h"              // our new GPIO helpers
+#include "gpio.h"              // GPIO code
 #include "stm32f303xc.h"       // CMSIS
 
 #define NO_TOUCH_THRESHOLD   100U  // raw ADC count threshold
