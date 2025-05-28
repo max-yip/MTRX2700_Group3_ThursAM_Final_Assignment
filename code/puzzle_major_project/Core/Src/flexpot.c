@@ -41,6 +41,7 @@ void FlexPot_Init(void) {
     while (ADC1->CR & ADC_CR_ADCAL);
 
     // 5) Long sample time on channels 6 & 8
+    // Improves accuracy and noise immunity
     ADC1->SMPR1 = (0x7U << ADC_SMPR1_SMP6_Pos)
                 | (0x7U << ADC_SMPR1_SMP8_Pos);
 
