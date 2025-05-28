@@ -26,7 +26,7 @@
 #include "string.h"
 #include "i2c.h"
 #include "adc.h"
-#include "timer.h"
+//#include "timer.h"
 
 
 /* USER CODE END Includes */
@@ -38,7 +38,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-#define LIGHT_THRESHOLD 3400
+#define LIGHT_THRESHOLD 1000
 
 /* USER CODE END PD */
 
@@ -55,6 +55,8 @@ SPI_HandleTypeDef hspi1;
 PCD_HandleTypeDef hpcd_USB_FS;
 
 /* USER CODE BEGIN PV */
+
+//variables to store lux value when testing ldr
 uint16_t lux=0;
 char msg[20];
 /* USER CODE END PV */
@@ -106,12 +108,15 @@ int main(void)
   MX_I2C1_Init();
   MX_SPI1_Init();
   MX_USB_PCD_Init();
+
   /* USER CODE BEGIN 2 */
+
+  //activate backlight for lcd
   HD44780_Init(2);
   HD44780_Backlight();
 
   initialiseSingleADC();
-  init_TIM2_for_delay();
+//  init_TIM2_for_delay();
 
   uint8_t last_state = 255; // Invalid initial state to force first update
 
@@ -122,37 +127,61 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  // Use your manual ADC function instead of HAL
-	      lux = readLDR_ADC();
+      // Read LDR value using ADC (lux is light intensity)
+      lux = readLDR_ADC();
 
-	      uint8_t current_state = (lux > LIGHT_THRESHOLD) ? 1 : 0;
+      // Determine light state: 1 if above threshold (bright), 0 if below (dark)
+      uint8_t current_state = (lux > LIGHT_THRESHOLD) ? 1 : 0;
 
-	      if (current_state != last_state) {
-	    	  HD44780_Clear();
+      /* ---------------------------------------------------------------
+       * ICD (In-Circuit Debugging) Test Code - Disabled
+       * Uncomment this section for debugging LDR readings on the LCD
+       * ---------------------------------------------------------------
+       */
+      /*
+      if (current_state != last_state) {
+          HD44780_Clear();                          // Clear LCD screen
+          HD44780_SetCursor(0, 0);                  // Set cursor to first row
+          HD44780_PrintStr("Light: ");              // Print label
 
-	      if (current_state) {
-	    	  HD44780_SetCursor(0, 0);
-	    	  HD44780_PrintStr("Place crystal");
-	    	  HD44780_SetCursor(0, 1);
-	    	  HD44780_PrintStr("on handle!");
-	          } else {
-	        	  HD44780_SetCursor(0, 0);
-	        	  HD44780_PrintStr("Too dark...");
-	                  }
+          sprintf(msg, "%hu", lux);                 // Convert lux value to string
+          HD44780_SetCursor(0, 7);                  // Move cursor to display value
+          HD44780_PrintStr(msg);                    // Print lux value
+      }
+      */
 
-	      last_state = current_state;
+      /* ---------------------------------------------------------------
+       * Actual Application Code - Display message based on light level
+       * ---------------------------------------------------------------
+       */
+      if (current_state != last_state) {
+          HD44780_Clear();                          // Clear LCD screen
 
-	      }
+          if (current_state) {
+              // If light is detected (e.g. crystal placed under light)
+              HD44780_SetCursor(0, 0);
+              HD44780_PrintStr("Place crystal");
+              HD44780_SetCursor(0, 1);
+              HD44780_PrintStr("on handle!");
+          } else {
+              // If it's too dark
+              HD44780_SetCursor(0, 0);
+              HD44780_PrintStr("Too dark...");
+          }
 
-	      delay_ms(500);
+          // Update last known light state
+          last_state = current_state;
+      }
+  }
 
+}
 
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+
   /* USER CODE END 3 */
-}
+
 
 /**
   * @brief System Clock Configuration
