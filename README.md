@@ -19,6 +19,8 @@ microcontroller subsystems, sensors, and an actuator.
   - Break beam sensor module
   - Servo motor control
   - Flexible potentiometer module
+- **Design**
+  - Phycial cardboard models (puzzles 2+3)
 
 ### Max Yip
 - **Integration:**
