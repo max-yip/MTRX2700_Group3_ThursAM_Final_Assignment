@@ -35,28 +35,31 @@ void enable_beam_clocks(void) {
     __HAL_RCC_GPIOE_CLK_ENABLE();  // LEDs PE8..PE15
 }
 
-/*
-Configure PC1 as EXTI1 falling-edge input with pull-up.
-*/
-void configure_beam_sensor_gpio(void) {
-    GPIO_InitTypeDef gpio = {0};
-    gpio.Pin  = GPIO_PIN_1;
-    gpio.Mode = GPIO_MODE_IT_FALLING;
-    gpio.Pull = GPIO_PULLUP;
-    HAL_GPIO_Init(GPIOC, &gpio);
-}
 
 /*
-Configure PE8..PE15 as push-pull outputs for LEDs.
+ Configure PC1 as EXTI1 falling‐edge input with internal pull-up resistor.
+*/
+void configure_beam_sensor_gpio(void) {
+    GPIO_InitTypeDef gpio = {0};            // Clear all fields in init struct
+    gpio.Pin  = GPIO_PIN_1;                 // Select pin PC1
+    gpio.Mode = GPIO_MODE_IT_FALLING;       // Configure as interrupt on falling edge
+    gpio.Pull = GPIO_PULLUP;                // Enable internal pull-up so line idles HIGH
+    HAL_GPIO_Init(GPIOC, &gpio);            // Apply configuration to GPIOC port
+}
+
+
+/*
+ Configure PE8..PE15 as push-pull outputs for driving LEDs.
 */
 void configure_beam_led_gpio(void) {
-    GPIO_InitTypeDef gpio = {0};
+    GPIO_InitTypeDef gpio = {0};            // Clear all fields in init struct
+    // Combine pins PE8 through PE15 into one mask
     gpio.Pin   = GPIO_PIN_8  | GPIO_PIN_9  | GPIO_PIN_10 | GPIO_PIN_11
                | GPIO_PIN_12 | GPIO_PIN_13 | GPIO_PIN_14 | GPIO_PIN_15;
-    gpio.Mode  = GPIO_MODE_OUTPUT_PP;
-    gpio.Pull  = GPIO_NOPULL;
-    gpio.Speed = GPIO_SPEED_FREQ_LOW;
-    HAL_GPIO_Init(GPIOE, &gpio);
+    gpio.Mode  = GPIO_MODE_OUTPUT_PP;       // Set pins as general-purpose push-pull outputs
+    gpio.Pull  = GPIO_NOPULL;               // No pull-up or pull-down resistors needed
+    gpio.Speed = GPIO_SPEED_FREQ_LOW;       // Low output speed (sufficient for LEDs)
+    HAL_GPIO_Init(GPIOE, &gpio);            // Apply configuration to GPIOE port
 }
 
 
