@@ -34,10 +34,10 @@ typedef enum {
     GREEN = 2
 } ColourType;
 
-
+// allow user access to detected colour
 extern ColourType detectedColour;
 
-
+//callback function for time to run the state machine
 void handleStateMachine(void);
 
 

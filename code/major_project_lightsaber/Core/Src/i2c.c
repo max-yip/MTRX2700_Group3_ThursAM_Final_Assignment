@@ -2,11 +2,13 @@
 
 extern I2C_HandleTypeDef hi2c1;
 
-uint8_t dpFunction;
-uint8_t dpControl;
-uint8_t dpMode;
-uint8_t dpRows;
-uint8_t dpBacklight;
+// Display configuration and state variables
+uint8_t dpFunction;     // Function set flags (4-bit, 1/2 lines, font)
+uint8_t dpControl;      // Display control flags (display on/off, cursor, blink)
+uint8_t dpMode;         // Entry mode set flags (cursor direction, shift)
+uint8_t dpRows;         // Number of LCD display rows
+uint8_t dpBacklight;    // Backlight control flag
+
 
 static void SendCommand(uint8_t);
 static void SendChar(uint8_t);
@@ -17,105 +19,100 @@ static void PulseEnable(uint8_t);
 static void DelayInit(void);
 static void DelayUS(uint32_t);
 
+// Custom character 1 (example symbol)
 uint8_t special1[8] = {
-        0b00000,
-        0b11001,
-        0b11011,
-        0b00110,
-        0b01100,
-        0b11011,
-        0b10011,
-        0b00000
+    0b00000,
+    0b11001,
+    0b11011,
+    0b00110,
+    0b01100,
+    0b11011,
+    0b10011,
+    0b00000
 };
 
+// Custom character 2 (example symbol)
 uint8_t special2[8] = {
-        0b11000,
-        0b11000,
-        0b00110,
-        0b01001,
-        0b01000,
-        0b01001,
-        0b00110,
-        0b00000
+    0b11000,
+    0b11000,
+    0b00110,
+    0b01001,
+    0b01000,
+    0b01001,
+    0b00110,
+    0b00000
 };
 
-void HD44780_Init(uint8_t rows)
-{
-  dpRows = rows;
 
+// Initialize the LCD with the specified number of rows
+void HD44780_Init(uint8_t rows) {
+  dpRows = rows;
   dpBacklight = LCD_BACKLIGHT;
 
+  // Set function mode: 4-bit, 1-line (will update to 2-line if needed)
   dpFunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
 
   if (dpRows > 1)
-  {
     dpFunction |= LCD_2LINE;
-  }
   else
-  {
     dpFunction |= LCD_5x10DOTS;
-  }
 
-  /* Wait for initialization */
+  // Hardware delays for LCD power-up
   DelayInit();
   HAL_Delay(50);
 
   ExpanderWrite(dpBacklight);
   HAL_Delay(1000);
 
-  /* 4bit Mode */
-  Write4Bits(0x03 << 4);
-  DelayUS(4500);
+  // LCD initialization sequence for 4-bit interface
+  Write4Bits(0x03 << 4); DelayUS(4500);
+  Write4Bits(0x03 << 4); DelayUS(4500);
+  Write4Bits(0x03 << 4); DelayUS(4500);
+  Write4Bits(0x02 << 4); DelayUS(100); // Set to 4-bit mode
 
-  Write4Bits(0x03 << 4);
-  DelayUS(4500);
-
-  Write4Bits(0x03 << 4);
-  DelayUS(4500);
-
-  Write4Bits(0x02 << 4);
-  DelayUS(100);
-
-  /* Display Control */
+  // Function set
   SendCommand(LCD_FUNCTIONSET | dpFunction);
 
+  // Display control (turn display ON, no cursor/blink)
   dpControl = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF;
   HD44780_Display();
   HD44780_Clear();
 
-  /* Display Mode */
+  // Entry mode set (cursor move direction)
   dpMode = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT;
   SendCommand(LCD_ENTRYMODESET | dpMode);
   DelayUS(4500);
 
+  // Load custom characters to CGRAM
   HD44780_CreateSpecialChar(0, special1);
   HD44780_CreateSpecialChar(1, special2);
 
   HD44780_Home();
 }
 
-void HD44780_Clear()
-{
+
+// ===== Basic LCD Functions =====
+
+void HD44780_Clear() {
   SendCommand(LCD_CLEARDISPLAY);
   DelayUS(2000);
 }
 
-void HD44780_Home()
-{
+void HD44780_Home() {
   SendCommand(LCD_RETURNHOME);
   DelayUS(2000);
 }
 
-void HD44780_SetCursor(uint8_t col, uint8_t row)
-{
+// Set cursor to specific (col, row) location
+void HD44780_SetCursor(uint8_t col, uint8_t row) {
   int row_offsets[] = { 0x00, 0x40, 0x14, 0x54 };
   if (row >= dpRows)
-  {
-    row = dpRows-1;
-  }
+    row = dpRows - 1;
   SendCommand(LCD_SETDDRAMADDR | (col + row_offsets[row]));
 }
 
+
+// ===== Display Control =====
 void HD44780_NoDisplay()
 {
   dpControl &= ~LCD_DISPLAYON;
@@ -152,6 +149,10 @@ void HD44780_Blink()
   SendCommand(LCD_DISPLAYCONTROL | dpControl);
 }
 
+
+
+// =====Cursor and Display Shift=====
+
 void HD44780_ScrollDisplayLeft(void)
 {
   SendCommand(LCD_CURSORSHIFT | LCD_DISPLAYMOVE | LCD_MOVELEFT);
@@ -186,6 +187,9 @@ void HD44780_NoAutoScroll(void)
   SendCommand(LCD_ENTRYMODESET | dpMode);
 }
 
+
+// ===== Custom Characters =====
+
 void HD44780_CreateSpecialChar(uint8_t location, uint8_t charmap[])
 {
   location &= 0x7;
@@ -205,6 +209,10 @@ void HD44780_LoadCustomCharacter(uint8_t char_num, uint8_t *rows)
 {
   HD44780_CreateSpecialChar(char_num, rows);
 }
+
+
+
+// ===== Print and Backlight =====
 
 void HD44780_PrintStr(const char c[])
 {
@@ -228,6 +236,10 @@ void HD44780_Backlight(void)
   dpBacklight=LCD_BACKLIGHT;
   ExpanderWrite(0);
 }
+
+
+
+// ===== Low-Level Communication Helpers =====
 
 static void SendCommand(uint8_t cmd)
 {
@@ -267,6 +279,8 @@ static void PulseEnable(uint8_t _data)
   ExpanderWrite(_data & ~ENABLE);
   DelayUS(20);
 }
+
+//===== Microsecond Delay Using DWT (for debugging) =====
 
 static void DelayInit(void)
 {

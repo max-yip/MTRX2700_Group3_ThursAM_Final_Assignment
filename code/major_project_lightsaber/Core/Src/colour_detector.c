@@ -8,124 +8,147 @@
 
 #include "colour_detector.h"
 
-static uint8_t calibrate = 0; // 0 = not calibrated, 1 = have calibrated
-static uint16_t red_initial, green_initial, blue_initial;
-static uint16_t red_adc, green_adc, blue_adc;
-static uint8_t colour_serial[32];
-static ColorDetectState currentState = STATE_SET_RED; // starting state
-//static uint8_t debug_buffer[128]; // debugging purpose
+// Calibration state flag: 0 = not calibrated, 1 = calibrated
+static uint8_t calibrate = 0;
 
+// Initial ADC values recorded during calibration
+static uint16_t red_initial, green_initial, blue_initial;
+
+// Current ADC readings for each color
+static uint16_t red_adc, green_adc, blue_adc;
+
+// Buffer to store the output string displayed on LCD
+static uint8_t colour_serial[32];
+
+// Current state of the color detection state machine
+static ColorDetectState currentState = STATE_SET_RED;
+
+// Debugging buffer used for serial UART output
+static uint8_t debug_buffer[128];
+
+// Output result of color detection
 ColourType detectedColour = NO_COLOUR;
 
 
-// Calibration Helper Function
+// ============================== //
+//  Calibration Helper Function  //
+// ============================== //
 void save_readings_to_initial(void){
-	red_initial = red_adc;
-	green_initial = green_adc;
-	blue_initial = blue_adc;
+    // Store current readings as reference for future comparisons
+    red_initial = red_adc;
+    green_initial = green_adc;
+    blue_initial = blue_adc;
 }
 
 
-// State Machine
+// ========================== //
+//   Main Color State Machine //
+// ========================== //
 void handleStateMachine(void) {
     switch (currentState) {
 
-    	// read Red LDR
+        // ----------- //
+        // RED Channel //
+        // ----------- //
         case STATE_SET_RED:
-            setRed();
-            currentState = STATE_READ_RED;
+            setRed();                       // Enable red filter (e.g. select red LED or LDR channel)
+            currentState = STATE_READ_RED; // Next: read red value
             break;
 
         case STATE_READ_RED:
-        	red_adc = singleReadADC();
-            currentState = STATE_SET_GREEN;
+            red_adc = singleReadADC();     // Perform ADC read for red
+            currentState = STATE_SET_GREEN; // Move to green
             break;
 
-        // read Green LDR
+        // ------------ //
+        // GREEN Channel //
+        // ------------ //
         case STATE_SET_GREEN:
-            setGreen();
+            setGreen();                    // Enable green filter
             currentState = STATE_READ_GREEN;
             break;
 
         case STATE_READ_GREEN:
-        	green_adc = singleReadADC();
+            green_adc = singleReadADC();   // Perform ADC read for green
             currentState = STATE_SET_BLUE;
             break;
 
-
-        // read Blue LDR
+        // ----------- //
+        // BLUE Channel //
+        // ----------- //
         case STATE_SET_BLUE:
-            setBlue();
+            setBlue();                     // Enable blue filter
             currentState = STATE_READ_BLUE;
             break;
 
         case STATE_READ_BLUE:
-            blue_adc = singleReadADC();
+            blue_adc = singleReadADC();    // Perform ADC read for blue
+
+            // If not yet calibrated, proceed to calibration
             if (calibrate == 0) {
-				currentState = STATE_CALIBRATION; // calibrate if not calibrated yet
-			} else {
-				currentState = STATE_DETERMINE_COLOUR;
-			}
+                currentState = STATE_CALIBRATION;
+            } else {
+                currentState = STATE_DETERMINE_COLOUR;
+            }
             break;
 
-
+        // ------------------- //
+        // Calibration Routine //
+        // ------------------- //
         case STATE_CALIBRATION:
-            save_readings_to_initial();
-            calibrate = 1;
-            currentState = STATE_SET_RED; // restart state machine
+            save_readings_to_initial();    // Save current readings as baseline
+            calibrate = 1;                 // Mark system as calibrated
+            currentState = STATE_SET_RED;  // Restart measurement cycle
             break;
 
-
+        // ------------------- //
+        // Colour Determination //
+        // ------------------- //
         case STATE_DETERMINE_COLOUR: {
-        	if ((green_initial - green_adc) > 400) {
-				detectedColour = GREEN; // set colour to green
-			}
+            // Check for green dominance based on drop from calibrated value
+            if ((green_initial - green_adc) > 400) {
+                detectedColour = GREEN;
+            }
+            // Check for red dominance
+            else if ((red_initial - red_adc) > 400) {
+                detectedColour = RED;
+            }
+            // If no significant drop, no colour detected
+            else {
+                detectedColour = NO_COLOUR;
+            }
 
-        	else if ((red_initial - red_adc) > 400) {
-				detectedColour = RED; // set colour to red
-			}
-
-        	else {
-				detectedColour = NO_COLOUR; // set no colour
-			}
-
-            currentState = STATE_TRANSMIT; // or other output/loop back
+            currentState = STATE_TRANSMIT; // Move to output state
             break;
         }
 
-
-        // optional debug state
+        // ---------------------- //
+        // Transmit / Output State //
+        // ---------------------- //
         case STATE_TRANSMIT:
-            // Send over USART
+            // Debug print of all ADC values over serial
+            sprintf((char*)debug_buffer, "red_val: %hu, green_val: %hu, blue_val: %hu\r\n", red_adc, green_adc, blue_adc);
+            transmitString(debug_buffer, &USART1_PORT);
 
-        	if (detectedColour == RED){
-        		sprintf((char*)colour_serial, "A Sith Lord?"); // \r\n if serial
-        	}
-        	else if (detectedColour == GREEN){
-        		sprintf((char*)colour_serial, "GREEN LIGHTSABER!"); // \r\n if serial
-        	}
-        	else {
-        		HD44780_Clear();
-        		currentState = STATE_SET_RED;
-        		break;
-        	}
+            // Set message depending on detected colour
+            if (detectedColour == RED) {
+                sprintf((char*)colour_serial, "A Sith Lord?"); // Red message
+            } else if (detectedColour == GREEN) {
+                sprintf((char*)colour_serial, "GREEN LIGHTSABER!"); // Green message
+            } else {
+                // No valid colour — just clear and reset
+                HD44780_Clear();
+                currentState = STATE_SET_RED;
+                break;
+            }
 
-        	HD44780_Clear();                 // Clear screen before printing
-        	HD44780_SetCursor(0, 0);         // Set cursor to top-left
-        	HD44780_PrintStr((const char*)colour_serial); // Print the string
+            // Display message on LCD
+            HD44780_Clear();                                  // Clear screen
+            HD44780_SetCursor(0, 0);                          // Position at top-left
+            HD44780_PrintStr((const char*)colour_serial);     // Display result
 
-
-        	// testing use serial
-//        	transmitString(colour_serial, &USART1_PORT);
-
-//
-//			sprintf((char*)debug_buffer, "red_val: %hu, green_val: %hu, blue_val: %hu\r\n", red_adc, green_adc, blue_adc);
-//			transmitString(debug_buffer, &USART1_PORT);
-
-            currentState = STATE_SET_RED; // loop back
+            // Restart cycle
+            currentState = STATE_SET_RED;
             break;
     }
 }
-
-
-// callback function when button is pressed

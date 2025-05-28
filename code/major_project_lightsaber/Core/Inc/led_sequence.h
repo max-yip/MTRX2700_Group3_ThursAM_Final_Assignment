@@ -22,6 +22,7 @@ typedef enum {
 } LedState;
 
 
+// LED logic for the beam (green leds)
 void setLEDs(void);
 
 
