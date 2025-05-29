@@ -73,6 +73,7 @@ void enable_flexpot_clocks(void) {
 
 /*
 Configure PC0 and PC2 as analog inputs for ADC channels IN6 & IN8.
+OR is used to set both pairs to 11 (analog)
 */
 void configure_flexpot_gpio(void) {
     // PC0 (IN6) and PC2 (IN8) set to analog mode
